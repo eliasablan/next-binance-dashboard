@@ -3,9 +3,9 @@ import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { ModeToggle } from "@/components/theme-dropdown";
+import { SiteHeader } from "@/components/header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,16 +41,18 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebar />
-            <main className="flex flex-1 flex-col items-start justify-start p-2">
-              <header className="flex w-full items-center justify-between">
-                <SidebarTrigger variant="outline" className="size-9" />
-                <ModeToggle />
-              </header>
-              {children}
-            </main>
-          </SidebarProvider>
+          <div className="[--header-height:calc(--spacing(14))]">
+            <SidebarProvider
+              defaultOpen={defaultOpen}
+              className="flex flex-col"
+            >
+              <SiteHeader />
+              <div className="flex flex-1">
+                <AppSidebar />
+                <SidebarInset>{children}</SidebarInset>
+              </div>
+            </SidebarProvider>
+          </div>
         </ThemeProvider>
       </body>
     </html>
