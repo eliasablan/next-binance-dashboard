@@ -11,8 +11,8 @@ export default function PrimaryChartCard() {
   return (
     <div
       className={cn(
-        "relative m-4 mb-0 flex flex-1 flex-col items-center justify-center rounded-xl border duration-200",
-        isExpanded ? "min-h-[calc(100vh-5.5rem)]" : "min-h-3/5",
+        "relative m-4 mb-0 flex flex-1 flex-col items-center justify-center rounded-xl border duration-500 ease-in-out",
+        isExpanded ? "min-h-[calc(100vh-6rem)]" : "min-h-3/5",
       )}
     >
       <h1>Welcome to the Next.js Binance Dashboard</h1>

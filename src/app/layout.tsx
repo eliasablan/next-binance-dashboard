@@ -44,13 +44,17 @@ export default async function RootLayout({
           <div className="[--header-height:calc(--spacing(14))]">
             <SidebarProvider
               defaultOpen={defaultOpen}
-              className="flex flex-col"
+              style={
+                {
+                  "--sidebar-width": "350px",
+                } as React.CSSProperties
+              }
             >
-              <SiteHeader />
-              <div className="flex flex-1">
-                <AppSidebar />
-                <SidebarInset>{children}</SidebarInset>
-              </div>
+              <AppSidebar />
+              <SidebarInset>
+                <SiteHeader />
+                {children}
+              </SidebarInset>
             </SidebarProvider>
           </div>
         </ThemeProvider>
