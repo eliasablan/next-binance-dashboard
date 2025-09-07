@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { FullscreenIcon } from "lucide-react";
 import { useState } from "react";
@@ -8,22 +15,32 @@ import { useState } from "react";
 export default function PrimaryChartCard() {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  console.log(isExpanded);
   return (
-    <div
+    <Card
       className={cn(
-        "relative m-4 mb-0 flex flex-1 flex-col items-center justify-center rounded-xl border duration-500 ease-in-out",
-        isExpanded ? "min-h-[calc(100vh-6rem)]" : "min-h-3/5",
+        "duration-500 ease-in-out",
+        isExpanded
+          ? "min-h-[calc(100vh-var(--header-height)-2rem)]"
+          : "min-h-[calc(60vh)]",
       )}
     >
-      <h1>Welcome to the Next.js Binance Dashboard</h1>
-      <Button
-        className="absolute right-2 bottom-2"
-        onClick={() => setIsExpanded(!isExpanded)}
-        size="icon"
-        variant="ghost"
-      >
-        <FullscreenIcon />
-      </Button>
-    </div>
+      <CardHeader>
+        <CardTitle>Primary Chart</CardTitle>
+      </CardHeader>
+      <CardContent className="flex h-full flex-col items-center justify-center">
+        <h1>Welcome to the Next.js Binance Dashboard</h1>
+      </CardContent>
+      <CardFooter>
+        <Button
+          className="ml-auto translate-3"
+          onClick={() => setIsExpanded(!isExpanded)}
+          size="icon"
+          variant="ghost"
+        >
+          <FullscreenIcon />
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

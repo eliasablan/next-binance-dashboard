@@ -13,7 +13,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function SiteHeader() {
   return (
-    <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4">
+    <header
+      className="bg-background sticky top-0 flex items-center gap-2 border-b p-4"
+      style={{
+        height: "var(--header-height)",
+      }}
+    >
       <SidebarTrigger className="-ml-1" />
       <Separator
         orientation="vertical"

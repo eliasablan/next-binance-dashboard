@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/header";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,12 +42,13 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="[--header-height:calc(--spacing(14))]">
+          <NuqsAdapter>
             <SidebarProvider
               defaultOpen={defaultOpen}
               style={
                 {
                   "--sidebar-width": "350px",
+                  "--header-height": "62px",
                 } as React.CSSProperties
               }
             >
@@ -56,7 +58,7 @@ export default async function RootLayout({
                 {children}
               </SidebarInset>
             </SidebarProvider>
-          </div>
+          </NuqsAdapter>
         </ThemeProvider>
       </body>
     </html>
