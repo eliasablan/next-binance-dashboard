@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // Interfaz para los datos de ticker en tiempo real
 export interface WebSocketTickerData {
@@ -29,7 +29,7 @@ export function useBinanceWebSocket(symbols: string[]) {
   const symbolsRef = useRef<string[]>([]);
 
   // Función para crear la conexión WebSocket
-  const createWebSocketConnection = () => {
+  const createWebSocketConnection = useCallback(() => {
     if (symbols.length === 0) return;
 
     // Cerrar conexión existente si la hay
@@ -105,7 +105,7 @@ export function useBinanceWebSocket(symbols: string[]) {
       console.error("Error creating WebSocket connection:", error);
       setConnectionStatus("error");
     }
-  };
+  }, [symbols]);
 
   // Efecto para crear/recrear la conexión cuando cambian los símbolos
   useEffect(() => {
@@ -128,7 +128,7 @@ export function useBinanceWebSocket(symbols: string[]) {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [symbols]);
+  }, [symbols, createWebSocketConnection]);
 
   // Función para reconectar manualmente
   const reconnect = () => {
