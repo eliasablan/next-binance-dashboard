@@ -1,6 +1,15 @@
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts";
+import {
+  BarChart,
+  LineChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Cell,
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -268,7 +277,7 @@ export default function PrimaryChartCard() {
         "@container/card duration-500 ease-in-out",
         isExpanded
           ? "min-h-[calc(100vh-var(--header-height)-2rem)]"
-          : "min-h-[calc(60vh)]",
+          : "min-h-[60vh]",
       )}
     >
       <CardHeader className="flex items-center justify-between">
@@ -277,8 +286,8 @@ export default function PrimaryChartCard() {
             <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2" />
           ) : (
             <>
-              <span className="text-2xl">
-                {CryptoNameService.getCryptoName(`${activeSymbol}USDT`)}
+              <span className="font-mono text-2xl font-bold">
+                {CryptoNameService.getBaseSymbol(`${activeSymbol}USDT`)}
               </span>
               <span className="text-muted-foreground font-mono text-lg">
                 {formatPrice(parseFloat(currentPrice))}
@@ -334,6 +343,7 @@ export default function PrimaryChartCard() {
           </Select>
         </CardAction>
       </CardHeader>
+
       <CardContent className="flex h-full flex-col items-center justify-center">
         {loading && candles.length === 0 ? (
           <div className="flex items-center space-x-3">
@@ -361,111 +371,177 @@ export default function PrimaryChartCard() {
             config={chartConfig}
             className="aspect-auto h-full w-full"
           >
-            <BarChart
-              data={filteredData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString("es-ES", {
-                    month: "short",
-                    day: "numeric",
-                  });
-                }}
-              />
-              <YAxis
-                domain={[minValue, maxValue]}
-                tickFormatter={(value) => formatPrice(value)}
-                tickLine={false}
-                axisLine={false}
-                width={80}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={(value, props) => {
-                      const [data] = props;
-                      return new Date(data.payload.time).toLocaleDateString(
-                        "es-ES",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        },
-                      );
-                    }}
-                    formatter={(value, name, props) => {
-                      const { payload } = props;
-                      if (payload && name === "openClose") {
-                        const [open, close] = value as [number, number];
-                        const isGrowing = open < close;
-                        const changePercent = ((close - open) / open) * 100;
-
-                        return [
-                          <div key="candle-info" className="space-y-1">
-                            <div className="flex justify-between">
-                              <span>Apertura:</span>
-                              <span className="font-mono">
-                                {formatPrice(open)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Cierre:</span>
-                              <span className="font-mono">
-                                {formatPrice(close)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Máximo:</span>
-                              <span className="font-mono">
-                                {formatPrice(payload.high)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Mínimo:</span>
-                              <span className="font-mono">
-                                {formatPrice(payload.low)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Cambio:</span>
-                              <span
-                                className={`font-mono ${isGrowing ? "text-green-600" : "text-red-600"}`}
-                              >
-                                {isGrowing ? "+" : ""}
-                                {changePercent.toFixed(2)}%
-                              </span>
-                            </div>
-                          </div>,
-                          // "Información de la vela",
-                        ];
-                      }
-                      return [value, name];
-                    }}
-                    indicator="dot"
-                  />
-                }
-              />
-              <Bar
-                dataKey="openClose"
-                fill="transparent"
-                shape={<Candlestick />}
+            {chartType === "line" ? (
+              <LineChart
+                data={filteredData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
-                {filteredData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} />
-                ))}
-              </Bar>
-            </BarChart>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="time"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return date.toLocaleDateString("es-ES", {
+                      month: "short",
+                      day: "numeric",
+                    });
+                  }}
+                />
+                <YAxis
+                  domain={[minValue, maxValue]}
+                  tickFormatter={(value) => formatPrice(value)}
+                  tickLine={false}
+                  axisLine={false}
+                  width={80}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(value, props) => {
+                        const [data] = props;
+                        return new Date(data.payload.time).toLocaleDateString(
+                          "es-ES",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        );
+                      }}
+                      formatter={(value) => {
+                        // value puede ser un array o un número, pero para la línea solo será número
+                        if (typeof value === "number") {
+                          return (
+                            <div className="mx-auto">{formatPrice(value)}</div>
+                          );
+                        }
+                        return <div className="mx-auto">{value}</div>;
+                      }}
+                      indicator="dot"
+                    />
+                  }
+                />
+                <Line
+                  type="linear"
+                  dataKey="close"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            ) : (
+              <BarChart
+                data={filteredData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="time"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return date.toLocaleDateString("es-ES", {
+                      month: "short",
+                      day: "numeric",
+                    });
+                  }}
+                />
+                <YAxis
+                  domain={[minValue, maxValue]}
+                  tickFormatter={(value) => formatPrice(value)}
+                  tickLine={false}
+                  axisLine={false}
+                  width={80}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(value, props) => {
+                        const [data] = props;
+                        return new Date(data.payload.time).toLocaleDateString(
+                          "es-ES",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        );
+                      }}
+                      formatter={(value, name, props) => {
+                        const { payload } = props;
+                        if (payload && name === "openClose") {
+                          const [open, close] = value as [number, number];
+                          const isGrowing = open < close;
+                          const changePercent = ((close - open) / open) * 100;
+
+                          return [
+                            <div key="candle-info" className="space-y-1">
+                              <div className="flex justify-between">
+                                <span>Apertura:</span>
+                                <span className="font-mono">
+                                  {formatPrice(open)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Cierre:</span>
+                                <span className="font-mono">
+                                  {formatPrice(close)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Máximo:</span>
+                                <span className="font-mono">
+                                  {formatPrice(payload.high)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Mínimo:</span>
+                                <span className="font-mono">
+                                  {formatPrice(payload.low)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Cambio:</span>
+                                <span
+                                  className={`font-mono ${isGrowing ? "text-green-600" : "text-red-600"}`}
+                                >
+                                  {isGrowing ? "+" : ""}
+                                  {changePercent.toFixed(2)}%
+                                </span>
+                              </div>
+                            </div>,
+                            // "Información de la vela",
+                          ];
+                        }
+                        return [value, name];
+                      }}
+                      indicator="dot"
+                    />
+                  }
+                />
+                <Bar
+                  dataKey="openClose"
+                  fill="transparent"
+                  shape={<Candlestick />}
+                >
+                  {filteredData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            )}
           </ChartContainer>
         )}
       </CardContent>
