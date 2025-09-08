@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/header";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { DashboardStoreProvider } from "@/providers/dashboard-store-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,15 +49,17 @@ export default async function RootLayout({
               style={
                 {
                   "--sidebar-width": "350px",
-                  "--header-height": "62px",
+                  "--header-height": "65px",
                 } as React.CSSProperties
               }
             >
-              <AppSidebar />
-              <SidebarInset>
-                <SiteHeader />
-                {children}
-              </SidebarInset>
+              <DashboardStoreProvider>
+                <AppSidebar />
+                <SidebarInset>
+                  <SiteHeader />
+                  {children}
+                </SidebarInset>
+              </DashboardStoreProvider>
             </SidebarProvider>
           </NuqsAdapter>
         </ThemeProvider>

@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
-import { useBinanceSymbols } from "@/hooks/use-binance-symbols";
+import { useBinanceSidefinder } from "@/hooks/use-binance-sidefinder";
 import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { CryptoNameService } from "@/services/crypto-name";
 
@@ -48,7 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     symbols,
     // loading: symbolsLoading,
     // error: symbolsError,
-  } = useBinanceSymbols();
+  } = useBinanceSidefinder();
   const [activeSymbol, setActiveSymbol] = useQueryState("symbol");
 
   // Hook para manejar WebSocket de precios en tiempo real

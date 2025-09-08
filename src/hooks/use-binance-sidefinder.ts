@@ -15,7 +15,7 @@ interface ExchangeInfoResponse {
 }
 
 // Hook personalizado para obtener símbolos de Binance
-export function useBinanceSymbols() {
+export function useBinanceSidefinder() {
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,7 @@ export function useBinanceSymbols() {
         }
 
         const data: ExchangeInfoResponse = await response.json();
+        console.log({ data });
 
         // Filtrar solo símbolos USDT que estén activos y permitan trading
         const usdtSymbols = data.symbols

@@ -13,11 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -25,13 +23,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { ChartCandlestick, ChartLine, FullscreenIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useEffect, useMemo, useState } from "react";
-import { useBinanceKlines, Candle } from "./use-binance-klines";
-import { CryptoNameService } from "@/services/crypto-name";
+import { useMemo } from "react";
+import { useBinanceKlines, Candle } from "../../hooks/use-binance-klines";
 import {
   Select,
   SelectContent,
@@ -40,6 +36,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useDashboardStore } from "@/providers/dashboard-store-provider";
+import { Label } from "@/components/ui/label";
 
 const chartConfig = {
   candlestick: {
@@ -78,8 +76,6 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
   if (height === 0 || Math.abs(open - close) < 0.001) return null;
 
   const ratio = Math.abs(height / (open - close));
-
-  // if (!isGrowing) console.log({ color, height, width, y, x });
 
   return (
     <g stroke={color} strokeWidth="1">
@@ -165,38 +161,86 @@ const prepareData = (candles: Candle[]): ChartDataItem[] => {
   }));
 };
 
-// Configuración de intervalos de tiempo
+// Configuración de intervalos de tiempo de las velas
 const TIME_INTERVALS = [
-  { value: "1m", label: "1m", displayName: "1 minuto" },
-  { value: "5m", label: "5m", displayName: "5 minutos" },
-  { value: "15m", label: "15m", displayName: "15 minutos" },
-  { value: "1h", label: "1h", displayName: "1 hora" },
-  { value: "4h", label: "4h", displayName: "4 horas" },
-  { value: "1d", label: "1d", displayName: "1 día" },
+  { order: 1, value: "1m", displayName: "1 minute" },
+  { order: 2, value: "3m", displayName: "3 minutes" },
+  { order: 3, value: "5m", displayName: "5 minutes" },
+  { order: 4, value: "15m", displayName: "15 minutes" },
+  { order: 5, value: "30m", displayName: "30 minutes" },
+  { order: 6, value: "1h", displayName: "1 hour" },
+  { order: 7, value: "2h", displayName: "2 hours" },
+  { order: 8, value: "4h", displayName: "4 hours" },
+  { order: 9, value: "6h", displayName: "6 hours" },
+  { order: 10, value: "8h", displayName: "8 hours" },
+  { order: 11, value: "12h", displayName: "12 hours" },
+  { order: 12, value: "1d", displayName: "1 day" },
+  { order: 13, value: "3d", displayName: "3 days" },
+  { order: 14, value: "1w", displayName: "1 week" },
+  { order: 15, value: "1M", displayName: "1 month" },
+];
+
+// Configuracion de rangos de tiempo del grafico
+const TIME_RANGES = [
+  {
+    order: 1,
+    value: "1h",
+    displayName: "1 hora",
+    miliseconds: 1000 * 60 * 60,
+  },
+  {
+    order: 2,
+    value: "4h",
+    displayName: "4 horas",
+    miliseconds: 1000 * 60 * 60 * 4,
+  },
+  {
+    order: 3,
+    value: "12h",
+    displayName: "12 horas",
+    miliseconds: 1000 * 60 * 60 * 12,
+  },
+  {
+    order: 4,
+    value: "1d",
+    displayName: "1 día",
+    miliseconds: 1000 * 60 * 60 * 24,
+  },
+  {
+    order: 5,
+    value: "2d",
+    displayName: "2 días",
+    miliseconds: 1000 * 60 * 60 * 24 * 2,
+  },
+  {
+    order: 6,
+    value: "1w",
+    displayName: "1 semana",
+    miliseconds: 1000 * 60 * 60 * 24 * 7,
+  },
+  {
+    order: 7,
+    value: "1M",
+    displayName: "1 mes",
+    miliseconds: 1000 * 60 * 60 * 24 * 30,
+  },
 ];
 
 export default function PrimaryChartCard() {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const isMobile = useIsMobile();
-  const [timeRange, setTimeRange] = useState<string>("90d");
-  const [interval, setInterval] = useState<string>("1h");
-  const [chartType, setChartType] = useState<"candlestick" | "line">(
-    "candlestick",
-  );
-
-  // Obtener símbolo seleccionado desde el contexto (si existe)
+  const {
+    interval,
+    setInterval,
+    range,
+    setRange,
+    viewerExpanded,
+    setViewerExpanded,
+    chartType,
+    setChartType,
+  } = useDashboardStore((state) => state);
   const [activeSymbol] = useQueryState("symbol");
 
   // Hook para obtener datos de velas en tiempo real con intervalo configurable
-  const { candles, currentPrice, loading, error, refetch } =
-    useBinanceKlines(interval);
-
-  useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d");
-      setInterval("4h"); // Intervalo más amplio para móvil
-    }
-  }, [isMobile]);
+  const { candles, loading, error, refetch } = useBinanceKlines(interval);
 
   // Preparar datos para el gráfico de velas
   const chartData = useMemo(() => {
@@ -206,32 +250,15 @@ export default function PrimaryChartCard() {
   // Filtrar datos según el rango de tiempo seleccionado
   const filteredData = useMemo(() => {
     const now = Date.now();
-    let timeAgoMs = 90 * 24 * 60 * 60 * 1000; // 90 días por defecto
+    let timeAgoMs = 0; // 0 por defecto
 
-    switch (timeRange) {
-      case "1h":
-        timeAgoMs = 60 * 60 * 1000;
-        break;
-      case "4h":
-        timeAgoMs = 4 * 60 * 60 * 1000;
-        break;
-      case "1d":
-        timeAgoMs = 24 * 60 * 60 * 1000;
-        break;
-      case "7d":
-        timeAgoMs = 7 * 24 * 60 * 60 * 1000;
-        break;
-      case "30d":
-        timeAgoMs = 30 * 24 * 60 * 60 * 1000;
-        break;
-      case "90d":
-      default:
-        timeAgoMs = 90 * 24 * 60 * 60 * 1000;
-        break;
+    const rangeConfig = TIME_RANGES.find((opt) => opt.value === range);
+    if (rangeConfig) {
+      timeAgoMs = rangeConfig.miliseconds;
     }
 
     return chartData.filter((item) => item.time >= now - timeAgoMs);
-  }, [chartData, timeRange]);
+  }, [chartData, range]);
 
   // Calcular valores mínimos y máximos para el eje Y
   const { minValue, maxValue } = useMemo(() => {
@@ -261,71 +288,66 @@ export default function PrimaryChartCard() {
 
   // Formatear precio
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-ES", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 2,
       maximumFractionDigits: price < 1 ? 6 : 2,
+      maximumSignificantDigits: 8,
       useGrouping: true,
     }).format(price);
   };
 
-  console.log({ isExpanded });
+  if (!activeSymbol)
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-muted-foreground">No hay símbolo seleccionado</p>
+      </div>
+    );
+
   return (
     <Card
       className={cn(
         "@container/card duration-500 ease-in-out",
-        isExpanded
+        viewerExpanded
           ? "min-h-[calc(100vh-var(--header-height)-2rem)]"
           : "min-h-[60vh]",
       )}
     >
-      <CardHeader className="flex items-center justify-between">
-        <CardTitle className="flex flex-col items-start @xl/card:flex-row @xl/card:items-end @xl/card:gap-2">
-          {loading ? (
-            <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2" />
-          ) : (
-            <>
-              <span className="font-mono text-2xl font-bold">
-                {CryptoNameService.getBaseSymbol(`${activeSymbol}USDT`)}
-              </span>
-              <span className="text-muted-foreground font-mono text-lg">
-                {formatPrice(parseFloat(currentPrice))}
-              </span>
-            </>
-          )}
-        </CardTitle>
-        <CardAction className="flex flex-col items-end gap-2 @lg/card:flex-row">
-          {/* Selector de rango de tiempo */}
+      <CardHeader className="flex w-full flex-row justify-between">
+        {/* Selector de rango de tiempo */}
+        <div className="flex flex-col gap-2">
+          <Label>Chart Range</Label>
           <ToggleGroup
             type="single"
             size="sm"
-            value={timeRange}
-            onValueChange={setTimeRange}
+            value={range}
+            onValueChange={setRange}
             variant="outline"
             className="hidden @md/card:flex"
           >
-            <ToggleGroupItem value="1h">1h</ToggleGroupItem>
-            <ToggleGroupItem value="4h">4h</ToggleGroupItem>
-            <ToggleGroupItem value="1d">1d</ToggleGroupItem>
-            <ToggleGroupItem value="7d">7d</ToggleGroupItem>
-            <ToggleGroupItem value="30d">30d</ToggleGroupItem>
-            <ToggleGroupItem value="90d">90d</ToggleGroupItem>
+            {TIME_RANGES.map((range) => (
+              <ToggleGroupItem key={range.value} value={range.value}>
+                {range.value}
+              </ToggleGroupItem>
+            ))}
           </ToggleGroup>
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={range} onValueChange={setRange}>
             <SelectTrigger className="flex @md/card:hidden" size="sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1h">Última hora</SelectItem>
-              <SelectItem value="4h">Últimas 4 horas</SelectItem>
-              <SelectItem value="1d">Último día</SelectItem>
-              <SelectItem value="7d">Últimos 7 días</SelectItem>
-              <SelectItem value="30d">Últimos 30 días</SelectItem>
-              <SelectItem value="90d">Últimos 3 meses</SelectItem>
+              {TIME_RANGES.map((range) => (
+                <SelectItem key={range.value} value={range.value}>
+                  {range.displayName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          {/* Selector de intervalo */}
+        </div>
+        {/* Selector de intervalo */}
+        <div className="flex flex-col items-end gap-2">
+          <Label>Intervals/Candles</Label>
           <Select value={interval} onValueChange={setInterval}>
             <SelectTrigger className="w-fullt" size="sm">
               <SelectValue />
@@ -341,7 +363,8 @@ export default function PrimaryChartCard() {
               ))}
             </SelectContent>
           </Select>
-        </CardAction>
+        </div>
+        {/* </CardAction> */}
       </CardHeader>
 
       <CardContent className="flex h-full flex-col items-center justify-center">
@@ -363,14 +386,13 @@ export default function PrimaryChartCard() {
         ) : filteredData.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-muted-foreground">
-              No hay datos disponibles para el rango seleccionado
+              {range
+                ? "No hay datos disponibles para el rango seleccionado"
+                : "Selecciona un rango de tiempo"}
             </p>
           </div>
         ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-full w-full"
-          >
+          <ChartContainer config={chartConfig} className="h-full w-full">
             {chartType === "line" ? (
               <LineChart
                 data={filteredData}
@@ -449,9 +471,23 @@ export default function PrimaryChartCard() {
                   minTickGap={32}
                   tickFormatter={(value) => {
                     const date = new Date(value);
+                    const rangesOrder =
+                      TIME_RANGES.find((opt) => opt.value === range)?.order ||
+                      1;
+                    const intervalOrder =
+                      TIME_INTERVALS.find((opt) => opt.value === interval)
+                        ?.order || 1;
+
+                    // Mayor que el orden "dia"
+                    if (intervalOrder > 8 && rangesOrder > 5) {
+                      return date.toLocaleDateString("es-ES", {
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }
                     return date.toLocaleDateString("es-ES", {
-                      month: "short",
-                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
                     });
                   }}
                 />
@@ -546,30 +582,36 @@ export default function PrimaryChartCard() {
         )}
       </CardContent>
       <CardFooter className="justify-between">
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={chartType}
-          onValueChange={(value) => {
-            if (value) setChartType(value as "candlestick" | "line");
-          }}
-          variant="outline"
-          className="flex self-baseline"
-        >
-          <ToggleGroupItem value="candlestick">
-            <ChartCandlestick className="h-5 w-5" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="line">
-            <ChartLine className="h-5 w-5" />
-          </ToggleGroupItem>
-        </ToggleGroup>
-        <Button
-          onClick={() => setIsExpanded(!isExpanded)}
-          size="sm"
-          variant="ghost"
-        >
-          <FullscreenIcon />
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Label>Chart Type</Label>
+          <ToggleGroup
+            type="single"
+            size="sm"
+            value={chartType}
+            onValueChange={(value) => {
+              if (value) setChartType(value as "candlestick" | "line");
+            }}
+            variant="outline"
+          >
+            <ToggleGroupItem value="candlestick">
+              <ChartCandlestick className="h-5 w-5" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="line">
+              <ChartLine className="h-5 w-5" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Label>{viewerExpanded ? "Collapse" : "Expand"}</Label>
+          <Button
+            onClick={() => setViewerExpanded(!viewerExpanded)}
+            size="icon"
+            className="size-8"
+            variant="outline"
+          >
+            <FullscreenIcon />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

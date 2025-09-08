@@ -1,3 +1,4 @@
+import { useDashboardStore } from "@/providers/dashboard-store-provider";
 import { useQueryState } from "nuqs";
 import { useState, useEffect, useCallback } from "react";
 
@@ -36,18 +37,26 @@ interface KlineStreamData {
 }
 
 // Hook personalizado para manejar datos de velas de Binance
-export function useBinanceKlines(interval: string = "1m") {
+export function useBinanceKlines(interval?: string | undefined) {
+  const { price, setPrice } = useDashboardStore((state) => state);
+  const [symbol, setSymbol] = useQueryState("symbol");
   const [candles, setCandles] = useState<Candle[]>([]);
-  const [currentPrice, setCurrentPrice] = useState<string>("-");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [symbol] = useQueryState("symbol");
 
   // Función para obtener datos históricos iniciales
   const fetchInitialData = useCallback(async () => {
     try {
+      setPrice("0");
       setLoading(true);
       setError(null);
+
+      console.log(["Fetching initial klines for", symbol, interval]);
+
+      if (!symbol || !interval) {
+        setLoading(false);
+        return;
+      }
 
       const response = await fetch(
         `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}`,
@@ -59,27 +68,25 @@ export function useBinanceKlines(interval: string = "1m") {
 
       const data = await response.json();
       const parsed: Candle[] = (
-        data as [number, string, string, string, string, ...unknown[]][]
-      ).map((d) => {
-        // console.log(d);
-        return {
-          time: d[0],
-          open: parseFloat(d[1]),
-          high: parseFloat(d[2]),
-          low: parseFloat(d[3]),
-          close: parseFloat(d[4]),
-        };
-      });
+        data as [number, string, string, string, string, string, ...unknown[]][]
+      ).map((d) => ({
+        time: d[0],
+        open: parseFloat(d[1]),
+        high: parseFloat(d[2]),
+        low: parseFloat(d[3]),
+        close: parseFloat(d[4]),
+        volume: parseFloat(d[5]),
+      }));
 
       setCandles(parsed);
-      setCurrentPrice(parsed[parsed.length - 1]?.close.toFixed(2) ?? "-");
+      setPrice(parsed[parsed.length - 1]?.close.toFixed(2) ?? "-");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
       console.error("Error fetching initial klines:", err);
     } finally {
       setLoading(false);
     }
-  }, [interval, symbol]);
+  }, [interval, symbol, setPrice]);
 
   // Efecto para obtener datos iniciales cuando cambia el símbolo
   useEffect(() => {
@@ -90,7 +97,7 @@ export function useBinanceKlines(interval: string = "1m") {
 
   // Efecto para manejar WebSocket de klines en tiempo real
   useEffect(() => {
-    if (!symbol) return;
+    if (!symbol || !interval) return;
 
     const ws = new WebSocket(
       `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`,
@@ -109,7 +116,7 @@ export function useBinanceKlines(interval: string = "1m") {
           close: parseFloat(k.c),
         };
 
-        setCurrentPrice(candle.close.toFixed(2));
+        setPrice(candle.close.toFixed(2));
 
         setCandles((prev) => {
           if (prev.length === 0) return [candle];
@@ -140,11 +147,13 @@ export function useBinanceKlines(interval: string = "1m") {
     return () => {
       ws.close();
     };
-  }, [symbol, interval]);
+  }, [symbol, interval, setPrice]);
 
   return {
     candles,
-    currentPrice,
+    symbol,
+    setSymbol,
+    currentPrice: price,
     loading,
     error,
     refetch: () => fetchInitialData(),
