@@ -9,6 +9,7 @@ export interface Candle {
   high: number;
   low: number;
   close: number;
+  volume?: number; // volumen negociado (puede venir en actualizaciones)
 }
 
 // Interfaz para los datos del WebSocket de klines
@@ -85,7 +86,7 @@ export function useBinanceKlines(interval?: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [interval, symbol, setPrice]);
+  }, [interval, symbol, setPrice, setCandles]);
 
   // Efecto para obtener datos iniciales cuando cambia el símbolo
   useEffect(() => {
@@ -113,22 +114,39 @@ export function useBinanceKlines(interval?: string | undefined) {
           high: parseFloat(k.h),
           low: parseFloat(k.l),
           close: parseFloat(k.c),
+          volume: parseFloat(k.v),
         };
 
         setPrice(candle.close.toFixed(2));
 
-        setCandles((prev) => {
-          if (prev.length === 0) return [candle];
+        // Usar estado actual de candles desde el store (sin setter funcional disponible)
+        // Nota: Al no tener acceso directo al valor previo aquí, asumimos 'candles' es el snapshot actual.
+        // Para evitar condiciones de carrera rápidas, esta frecuencia (1 msg/s en 1m) es segura.
+        const prev = candles;
+        let updated: Candle[];
+        if (prev.length === 0) {
+          updated = [candle];
+        } else {
           const last = prev[prev.length - 1];
-
-          if (last.time === candle.time) {
-            // Reemplazar la última vela (vela actual actualizándose)
-            return [...prev.slice(0, -1), candle];
+          if (candle.time < last.time) {
+            updated = prev; // ignorar desorden
+          } else if (last.time === candle.time) {
+            const merged: Candle = {
+              time: last.time,
+              open: last.open,
+              high: Math.max(last.high, candle.high),
+              low: Math.min(last.low, candle.low),
+              close: candle.close,
+              volume: candle.volume ?? last.volume,
+            };
+            updated = [...prev.slice(0, -1), merged];
+          } else {
+            const next = [...prev, candle];
+            const MAX = 100;
+            updated = next.length > MAX ? next.slice(-MAX) : next;
           }
-
-          // Agregar nueva vela y mantener máximo 100 velas
-          return [...prev, candle];
-        });
+        }
+        setCandles(updated);
       } catch (error) {
         console.error("Error parsing kline WebSocket message:", error);
       }
@@ -146,7 +164,7 @@ export function useBinanceKlines(interval?: string | undefined) {
     return () => {
       ws.close();
     };
-  }, [symbol, interval, setPrice]);
+  }, [symbol, interval, candles, setPrice, setCandles]);
 
   return {
     candles,

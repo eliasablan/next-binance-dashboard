@@ -112,6 +112,7 @@ export function SearchForm() {
     () => filtered.slice(0, MAX_STREAM_SYMBOLS).map((s) => s.symbol),
     [filtered],
   );
+  console.log({ subscribedSymbols, length: subscribedSymbols.length });
   const { getSymbolData } = useBinanceWebSocket(subscribedSymbols);
 
   // Keyboard shortcut '/'
