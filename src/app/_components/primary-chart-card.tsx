@@ -298,20 +298,15 @@ export default function PrimaryChartCard() {
     }).format(price);
   };
 
-  if (!activeSymbol)
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">No hay símbolo seleccionado</p>
-      </div>
-    );
+  if (!activeSymbol) return null;
 
   return (
     <Card
       className={cn(
         "@container/card duration-500 ease-in-out",
         viewerExpanded
-          ? "min-h-[calc(100vh-var(--header-height)-2rem)]"
-          : "min-h-[60vh]",
+          ? "h-[calc(100vh-var(--header-height)-1.5rem)]"
+          : "h-[calc(60vh-var(--header-height)-1.5rem)]",
       )}
     >
       <CardHeader className="flex w-full flex-row justify-between">
@@ -367,7 +362,7 @@ export default function PrimaryChartCard() {
         {/* </CardAction> */}
       </CardHeader>
 
-      <CardContent className="flex h-full flex-col items-center justify-center">
+      <CardContent className="flex flex-1 flex-col items-center justify-center overflow-hidden">
         {loading && candles.length === 0 ? (
           <div className="flex items-center space-x-3">
             <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>

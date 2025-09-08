@@ -36,7 +36,6 @@ export function useBinanceSidefinder() {
         }
 
         const data: ExchangeInfoResponse = await response.json();
-        console.log({ data });
 
         // Filtrar solo símbolos USDT que estén activos y permitan trading
         const usdtSymbols = data.symbols

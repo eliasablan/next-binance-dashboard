@@ -45,11 +45,12 @@ export default async function RootLayout({
         >
           <NuqsAdapter>
             <SidebarProvider
+              className="relative"
               defaultOpen={defaultOpen}
               style={
                 {
-                  "--sidebar-width": "350px",
-                  "--header-height": "65px",
+                  "--sidebar-width": "50px",
+                  "--header-height": "50px",
                 } as React.CSSProperties
               }
             >

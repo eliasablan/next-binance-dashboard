@@ -51,8 +51,6 @@ export function useBinanceKlines(interval?: string | undefined) {
       setLoading(true);
       setError(null);
 
-      console.log(["Fetching initial klines for", symbol, interval]);
-
       if (!symbol || !interval) {
         setLoading(false);
         return;

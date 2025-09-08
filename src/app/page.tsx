@@ -1,19 +1,13 @@
 import PrimaryChartCard from "./_components/primary-chart-card";
-// import { Card } from "@/components/ui/card";
+import VolumeChartCard from "./_components/volume-chart-card";
+import CoinFinder from "./_components/coin-finder";
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-3">
+      <CoinFinder />
       <PrimaryChartCard />
-
-      {/* <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <Card className="aspect-video" />
-        <Card className="aspect-video" />
-        <Card className="aspect-video" />
-        <Card className="aspect-video" />
-        <Card className="aspect-video" />
-        <Card className="aspect-video" />
-      </div> */}
+      <VolumeChartCard />
     </div>
   );
 }

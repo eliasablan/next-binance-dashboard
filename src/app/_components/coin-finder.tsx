@@ -1,0 +1,203 @@
+"use client";
+
+import * as React from "react";
+import { useQueryState } from "nuqs";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
+import { useBinanceKlines } from "@/hooks/use-binance-klines";
+import { CryptoNameService } from "@/services/crypto-name";
+import { TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type SymbolEntry = {
+  symbol: string;
+  base: string;
+  name: string;
+};
+
+function formatPrice(value: string | number | undefined) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (!num || Number.isNaN(num)) return "-";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: num < 1 ? 6 : 2,
+  }).format(num);
+}
+
+export default function CoinFinder() {
+  const [activeSymbol, setActiveSymbol] = useQueryState("symbol");
+  const { setSymbol: setSymbolHook } = useBinanceKlines();
+  const shouldHide = !!activeSymbol;
+
+  const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [searchValue, setSearchValue] = React.useState("");
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("https://api.binance.com/api/v3/exchangeInfo");
+        if (!res.ok) throw new Error("Error cargando símbolos");
+        const data = await res.json();
+        interface RawSymbol {
+          symbol: string;
+          status: string;
+          isSpotTradingAllowed: boolean;
+        }
+        const raw: RawSymbol[] = data.symbols || [];
+        const entries: SymbolEntry[] = raw
+          .filter(
+            (s) =>
+              s.status === "TRADING" &&
+              s.isSpotTradingAllowed &&
+              /USDT$/.test(s.symbol),
+          )
+          .map((s) => ({
+            symbol: s.symbol,
+            base: CryptoNameService.getBaseSymbol(s.symbol),
+            name: CryptoNameService.getCryptoName(s.symbol),
+          }));
+        if (!cancelled) setAllSymbols(entries);
+      } catch (e) {
+        if (!cancelled)
+          setError(e instanceof Error ? e.message : "Error desconocido");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filtered = React.useMemo(() => {
+    if (!searchValue) return [] as SymbolEntry[]; // hide until typing
+    const q = searchValue.toLowerCase();
+    return allSymbols.filter(
+      (s) =>
+        s.symbol.toLowerCase().includes(q) ||
+        s.base.toLowerCase().includes(q) ||
+        s.name.toLowerCase().includes(q),
+    );
+  }, [allSymbols, searchValue]);
+
+  // Limit displayed results
+  const DISPLAY_LIMIT = 10;
+  const visibleResults = React.useMemo(
+    () => filtered.slice(0, DISPLAY_LIMIT),
+    [filtered],
+  );
+
+  const MAX_STREAM_SYMBOLS = 120;
+  const subscribedSymbols = React.useMemo(
+    () => visibleResults.slice(0, MAX_STREAM_SYMBOLS).map((s) => s.symbol),
+    [visibleResults],
+  );
+  const { getSymbolData } = useBinanceWebSocket(subscribedSymbols);
+
+  const handleSelect = (base: string) => {
+    setActiveSymbol(base);
+    setSymbolHook(base);
+  };
+
+  if (shouldHide) return null;
+
+  return (
+    <div className="mx-auto mt-12 w-full max-w-4xl px-4">
+      <div className="mb-6 text-center">
+        <h1 className="font-heading text-4xl font-bold tracking-tight">
+          Elige una criptomoneda
+        </h1>
+        <p className="text-muted-foreground mt-2 text-sm">
+          Empieza a escribir para buscar por símbolo o nombre (BTC, ETH,
+          Solana...)
+        </p>
+      </div>
+      <Command className="bg-background/60 supports-[backdrop-filter]:bg-background/70 h-auto border shadow-sm backdrop-blur">
+        <CommandInput
+          placeholder="Buscar BTC, ETH, SOL..."
+          value={searchValue}
+          onValueChange={setSearchValue}
+          className="text-base"
+        />
+        <CommandList className="max-h-[420px] pb-2">
+          <CommandEmpty>
+            {loading
+              ? "Cargando símbolos..."
+              : searchValue
+                ? "Sin resultados"
+                : "Empieza a escribir para ver resultados"}
+          </CommandEmpty>
+          {visibleResults.length > 0 && (
+            <CommandGroup
+              heading={`Resultados (${Math.min(filtered.length, DISPLAY_LIMIT)}${
+                filtered.length > DISPLAY_LIMIT ? "+" : ""
+              })`}
+            >
+              {visibleResults.map((s) => {
+                const ws = getSymbolData(s.symbol);
+                const price = ws?.price;
+                const pct = ws?.priceChangePercent;
+                const pctNum = pct ? parseFloat(pct) : 0;
+                return (
+                  <CommandItem
+                    key={s.symbol}
+                    value={`${s.symbol} ${s.name}`}
+                    onSelect={() => handleSelect(s.base)}
+                    className="items-stretch"
+                  >
+                    <div className="flex flex-1 items-center gap-3 truncate">
+                      <TrendingUp className="text-muted-foreground" />
+                      <div className="flex flex-col leading-tight">
+                        <span className="font-mono text-base font-semibold">
+                          {s.base}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {s.name}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="font-mono text-xs">
+                        {formatPrice(price)}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-mono text-[10px] font-medium",
+                          pctNum > 0 && "text-green-500",
+                          pctNum < 0 && "text-red-500",
+                          pctNum === 0 && "text-muted-foreground",
+                        )}
+                      >
+                        {pct ? `${pctNum.toFixed(2)}%` : "--"}
+                      </span>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          )}
+          {visibleResults.length > 0 && <CommandSeparator />}
+          {error && !loading && (
+            <div className="text-destructive px-4 py-3 text-sm">
+              Error: {error}
+            </div>
+          )}
+        </CommandList>
+      </Command>
+    </div>
+  );
+}
