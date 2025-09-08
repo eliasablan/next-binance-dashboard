@@ -38,9 +38,10 @@ interface KlineStreamData {
 
 // Hook personalizado para manejar datos de velas de Binance
 export function useBinanceKlines(interval?: string | undefined) {
-  const { price, setPrice } = useDashboardStore((state) => state);
   const [symbol, setSymbol] = useQueryState("symbol");
-  const [candles, setCandles] = useState<Candle[]>([]);
+  const { price, setPrice, candles, setCandles } = useDashboardStore(
+    (state) => state,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
