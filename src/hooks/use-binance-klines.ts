@@ -43,18 +43,18 @@ export function useBinanceKlines(interval?: string | undefined) {
   const { price, setPrice, candles, setCandles } = useDashboardStore(
     (state) => state,
   );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { loadingCandles, setLoadingCandles, errorCandles, setErrorCandles } =
+    useDashboardStore((state) => state);
 
   // Función para obtener datos históricos iniciales
   const fetchInitialData = useCallback(async () => {
     try {
       setPrice("0");
-      setLoading(true);
-      setError(null);
+      setLoadingCandles(true);
+      setErrorCandles(undefined);
 
       if (!symbol || !interval) {
-        setLoading(false);
+        setLoadingCandles(false);
         return;
       }
 
@@ -81,12 +81,19 @@ export function useBinanceKlines(interval?: string | undefined) {
       setCandles(parsed);
       setPrice(parsed[parsed.length - 1]?.close.toFixed(2) ?? "-");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setErrorCandles(err instanceof Error ? err.message : "Error desconocido");
       console.error("Error fetching initial klines:", err);
     } finally {
-      setLoading(false);
+      setLoadingCandles(false);
     }
-  }, [interval, symbol, setPrice, setCandles]);
+  }, [
+    interval,
+    symbol,
+    setPrice,
+    setCandles,
+    setLoadingCandles,
+    setErrorCandles,
+  ]);
 
   // Efecto para obtener datos iniciales cuando cambia el símbolo
   useEffect(() => {
@@ -154,7 +161,7 @@ export function useBinanceKlines(interval?: string | undefined) {
 
     ws.onerror = (error) => {
       console.error("Kline WebSocket error:", error);
-      setError("Error en conexión WebSocket");
+      setErrorCandles("Error en conexión WebSocket");
     };
 
     ws.onclose = (event) => {
@@ -164,15 +171,23 @@ export function useBinanceKlines(interval?: string | undefined) {
     return () => {
       ws.close();
     };
-  }, [symbol, interval, candles, setPrice, setCandles]);
+  }, [
+    symbol,
+    interval,
+    candles,
+    setPrice,
+    setCandles,
+    setLoadingCandles,
+    setErrorCandles,
+  ]);
 
   return {
     candles,
     symbol,
     setSymbol,
     currentPrice: price,
-    loading,
-    error,
+    loading: loadingCandles,
+    error: errorCandles,
     refetch: () => fetchInitialData(),
   };
 }

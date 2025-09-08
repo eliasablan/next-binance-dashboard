@@ -8,6 +8,8 @@ export type DashboardState = {
   viewerExpanded: boolean;
   chartType: "candlestick" | "line";
   candles: Candle[];
+  loadingCandles: boolean;
+  errorCandles: string | undefined;
 };
 
 export type DashboardActions = {
@@ -17,6 +19,8 @@ export type DashboardActions = {
   setViewerExpanded: (finderExpanded: boolean) => void;
   setChartType: (chartType: "candlestick" | "line") => void;
   setCandles: (candles: Candle[]) => void;
+  setLoadingCandles: (loading: boolean) => void;
+  setErrorCandles: (error: string | undefined) => void;
 };
 
 export type DashboardStore = DashboardState & DashboardActions;
@@ -28,6 +32,8 @@ export const defaultInitialState: DashboardState = {
   viewerExpanded: false,
   chartType: "line",
   candles: [],
+  loadingCandles: false,
+  errorCandles: undefined,
 };
 
 export const createDashboardStore = (
@@ -41,5 +47,7 @@ export const createDashboardStore = (
     setViewerExpanded: (viewerExpanded) => set({ viewerExpanded }),
     setChartType: (chartType) => set({ chartType }),
     setCandles: (candles) => set({ candles }),
+    setLoadingCandles: (loading) => set({ loadingCandles: loading }),
+    setErrorCandles: (error) => set({ errorCandles: error }),
   }));
 };
