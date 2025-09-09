@@ -13,6 +13,7 @@ import { CryptoNameService } from "@/services/crypto-name";
 import { useBinanceKlines } from "@/hooks/use-binance-klines";
 import { useLocalStorage } from "usehooks-ts";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 function formatPrice(value: string | number | undefined) {
   const num = typeof value === "string" ? parseFloat(value) : value;
@@ -27,6 +28,11 @@ function formatPrice(value: string | number | undefined) {
 export function SelectedCoinCard() {
   // Solo nos interesa el precio de este símbolo
   const { currentPrice, symbol } = useBinanceKlines();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const [favouriteCryptos, setFavouriteCryptos] = useLocalStorage<
     { symbol: string; name: string }[]
@@ -64,7 +70,7 @@ export function SelectedCoinCard() {
     }
   }
 
-  if (!symbol) return null;
+  if (!symbol || !isMounted) return null;
 
   return (
     <Card className="h-fit w-full flex-none md:w-[350px]">
@@ -84,9 +90,9 @@ export function SelectedCoinCard() {
             onClick={toggleFavourite}
           >
             <Star
-              fill={isFavourite ? "yellow" : "none"}
+              fill={isFavourite ? "yellow" : "currentColor"}
               stroke={isFavourite ? "yellow" : "currentColor"}
-              className={"hover:motion-rotate-in-[0.5turn] size-4"}
+              className="hover:motion-rotate-in-[0.5turn] size-4"
             />
           </Button>
         </CardAction>

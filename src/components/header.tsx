@@ -4,8 +4,8 @@ import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Sidebar } from "lucide-react";
 import { Button } from "./ui/button";
-import { SearchForm } from "./search-form";
-import { FavouriteStocks } from "./favourite-stocks";
+import { SearchModal } from "./search-modal";
+// import { FavouriteStocks } from "./favourite-stocks";
 
 export function SiteHeader() {
   const { toggleSidebar, isMobile } = useSidebar();
@@ -36,8 +36,8 @@ export function SiteHeader() {
         )}
       </div>
       <div className="flex items-center gap-2">
-        <FavouriteStocks />
-        <SearchForm />
+        {/* <FavouriteStocks /> */}
+        <SearchModal />
       </div>
     </header>
   );
