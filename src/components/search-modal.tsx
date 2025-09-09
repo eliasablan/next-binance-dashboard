@@ -44,6 +44,16 @@ export function SearchModal() {
   const [, setSymbol] = useQueryState("symbol");
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+  const [baseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
+    serializer: (value) => JSON.stringify(value),
+    deserializer: (value) => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    },
+  });
 
   // Fetch ALL trading symbols (we'll keep USDT pairs for consistency)
   React.useEffect(() => {
@@ -62,15 +72,17 @@ export function SearchModal() {
         const entries: SymbolEntry[] = raw
           .filter(
             (s) =>
+              s.symbol.endsWith(baseCoin) &&
               s.status === "TRADING" &&
-              s.isSpotTradingAllowed &&
-              /USDT$/.test(s.symbol),
+              s.isSpotTradingAllowed,
           )
           .map((s) => ({
             symbol: s.symbol,
             base: CryptoNameService.getBaseSymbol(s.symbol),
             name: CryptoNameService.getCryptoName(s.symbol),
           }));
+        console.log("Raw: ", raw);
+        console.log("Entries: ", entries);
         if (!cancelled) setAllSymbols(entries);
       } catch (e) {
         console.error(e);
@@ -80,7 +92,7 @@ export function SearchModal() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [baseCoin]);
 
   const [favouriteCryptos] = useLocalStorage<
     { symbol: string; base: string; name: string }[]
@@ -205,7 +217,7 @@ export function SearchModal() {
                 <TrendingUp className="text-muted-foreground" />
                 <div className="flex flex-col leading-tight">
                   <span className="font-mono text-sm font-semibold">
-                    {s.base}
+                    {s.symbol}
                     {/* <span className="text-primary ml-1 text-xs font-light">
                       {s.symbol}
                     </span> */}

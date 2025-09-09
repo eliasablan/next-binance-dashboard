@@ -1,4 +1,3 @@
-import { ModeToggle } from "@/components/theme-dropdown";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -7,13 +6,7 @@ import {
   BreadcrumbPage,
   BreadcrumbLink,
 } from "@/components/ui/breadcrumb";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import SettingsClient from "./settings-client";
 
 export default function SettingsPage() {
   return (
@@ -44,44 +37,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6">
-        {/* Appearance / Theme Card */}
-        <Card className="supports-[backdrop-filter]:bg-background/70 overflow-hidden backdrop-blur">
-          <CardHeader className="pb-0">
-            <CardTitle className="text-base">Appearance</CardTitle>
-            <CardDescription>
-              Customize how the interface looks and feels.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="group bg-muted/30 hover:bg-muted/40 relative flex items-center justify-between gap-6 rounded-lg border px-4 py-3 transition-colors">
-              <div className="space-y-1">
-                <p className="text-sm leading-none font-medium">Theme</p>
-                <p className="text-muted-foreground text-xs">
-                  Switch between light, dark or system mode.
-                </p>
-              </div>
-              <ModeToggle />
-              <div className="ring-border pointer-events-none absolute inset-0 -z-10 rounded-lg opacity-0 ring-1 transition-all group-hover:opacity-100" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Future sections placeholder */}
-        {/**
-         * Uncomment & extend when adding more setting groups.
-         *
-         * <Card>
-         *   <CardHeader>
-         *     <CardTitle className="text-base">Notifications</CardTitle>
-         *     <CardDescription>Control alerts & real-time updates.</CardDescription>
-         *   </CardHeader>
-         *   <CardContent>
-         *     ...
-         *   </CardContent>
-         * </Card>
-         */}
-      </div>
+      <SettingsClient />
     </main>
   );
 }

@@ -36,6 +36,16 @@ function formatPrice(value: string | number | undefined) {
 
 export default function CoinFinder() {
   const [symbol, setSymbol] = useQueryState("symbol");
+  const [baseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
+    serializer: (value) => JSON.stringify(value),
+    deserializer: (value) => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    },
+  });
 
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -56,12 +66,13 @@ export default function CoinFinder() {
           isSpotTradingAllowed: boolean;
         }
         const raw: RawSymbol[] = data.symbols || [];
+
         const entries: SymbolEntry[] = raw
           .filter(
             (s) =>
+              s.symbol.endsWith(baseCoin) &&
               s.status === "TRADING" &&
-              s.isSpotTradingAllowed &&
-              /USDT$/.test(s.symbol),
+              s.isSpotTradingAllowed,
           )
           .map((s) => ({
             symbol: s.symbol,
@@ -80,6 +91,7 @@ export default function CoinFinder() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [favouriteCryptos] = useLocalStorage<
@@ -151,14 +163,8 @@ export default function CoinFinder() {
           className="text-base"
         />
         <CommandList className="max-h-[420px] pb-2">
-          <CommandEmpty>
-            {loading
-              ? "Loading symbols..."
-              : searchValue
-                ? "No results"
-                : "Start typing to see results"}
-          </CommandEmpty>
-          <CommandGroup heading={"Favorites"}>
+          {searchValue && <CommandEmpty>No results</CommandEmpty>}
+          <CommandGroup heading="Favorites">
             {favouriteCryptos.map((s) => {
               const ws = getSymbolData(s.symbol);
               const price = ws?.price;
@@ -222,7 +228,7 @@ export default function CoinFinder() {
                       <TrendingUp className="text-muted-foreground" />
                       <div className="flex flex-col leading-tight">
                         <span className="font-mono text-base font-semibold">
-                          {s.base}
+                          {s.symbol}
                         </span>
                         <span className="text-muted-foreground text-xs">
                           {s.name}
@@ -233,12 +239,6 @@ export default function CoinFinder() {
                 );
               })}
             </CommandGroup>
-          )}
-          {visibleResults.length > 0 && <CommandSeparator />}
-          {error && !loading && (
-            <div className="text-destructive px-4 py-3 text-sm">
-              Error: {error}
-            </div>
           )}
         </CommandList>
       </Command>
