@@ -35,7 +35,7 @@ export function SelectedCoinCard() {
   }, []);
 
   const [favouriteCryptos, setFavouriteCryptos] = useLocalStorage<
-    { symbol: string; name: string }[]
+    { symbol: string; base: string; name: string }[]
   >("favouriteCryptos", [], {
     serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {
@@ -56,6 +56,7 @@ export function SelectedCoinCard() {
 
     const stockToToggle = {
       symbol: symbol,
+      base: CryptoNameService.getBaseSymbol(symbol),
       name: CryptoNameService.getCryptoName(symbol),
     };
 

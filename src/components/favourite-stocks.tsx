@@ -13,7 +13,7 @@ import { Star } from "lucide-react";
 
 export function FavouriteStocks() {
   const [favouriteCryptos] = useLocalStorage<
-    { symbol: string; name: string }[]
+    { symbol: string; base: string; name: string }[]
   >("favouriteCryptos", [], {
     serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {

@@ -18,12 +18,25 @@ import { CryptoNameService } from "@/services/crypto-name";
 import { Search, Star, TrendingUp } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useLocalStorage } from "usehooks-ts";
+import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
+import { cn } from "@/lib/utils";
 
 type SymbolEntry = {
   symbol: string; // e.g. BTCUSDT
   base: string; // BTC
   name: string; // Bitcoin
 };
+
+// Helper to format price
+function formatPrice(value: string | number | undefined) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (!num || Number.isNaN(num)) return "-";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: num < 1 ? 6 : 2,
+  }).format(num);
+}
 
 export function SearchModal() {
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
@@ -69,20 +82,8 @@ export function SearchModal() {
     };
   }, []);
 
-  // Filter symbols by search
-  const filtered = React.useMemo(() => {
-    if (!searchValue) return allSymbols;
-    const q = searchValue.toLowerCase();
-    return allSymbols.filter(
-      (s) =>
-        s.symbol.toLowerCase().includes(q) ||
-        s.base.toLowerCase().includes(q) ||
-        s.name.toLowerCase().includes(q),
-    );
-  }, [allSymbols, searchValue]);
-
   const [favouriteCryptos] = useLocalStorage<
-    { symbol: string; name: string }[]
+    { symbol: string; base: string; name: string }[]
   >("favouriteCryptos", [], {
     serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {
@@ -93,6 +94,30 @@ export function SearchModal() {
       }
     },
   });
+
+  const cryptoList = React.useMemo(() => {
+    // if (!searchValue) return allSymbols;
+    const q = searchValue.toLowerCase();
+    return (
+      allSymbols
+        // Remove favourites from list
+        .filter((s) => favouriteCryptos.every((f) => s.base !== f.base))
+        // Remove non-matching symbols
+        .filter(
+          (s) =>
+            s.base.toLowerCase().includes(q) ||
+            s.symbol.toLowerCase().includes(q) ||
+            s.name.toLowerCase().includes(q),
+        )
+    );
+  }, [allSymbols, searchValue, favouriteCryptos]);
+
+  const watchedSymbols = React.useMemo(
+    () => favouriteCryptos.map((c) => c.symbol),
+    [favouriteCryptos],
+  );
+
+  const { getSymbolData } = useBinanceWebSocket(watchedSymbols);
 
   // Keyboard shortcut '/'
   React.useEffect(() => {
@@ -121,26 +146,55 @@ export function SearchModal() {
         onValueChange={setSearchValue}
       />
       <CommandList className="max-h-[60vh]">
-        <CommandGroup heading={`Favorites (${favouriteCryptos.length})`}>
-          {favouriteCryptos.map((item) => (
-            <CommandItem
-              key={item.symbol}
-              value={item.symbol}
-              onSelect={() => handleSelectSymbol(item.symbol)}
-            >
-              <Star stroke="gold" fill="gold" className="mr-1" />
-              <span className="font-mono text-sm font-semibold">
-                {item.name}
-              </span>
-              {/* <CommandShortcut className="bg-muted rounded px-1.5">
-                ↵
-              </CommandShortcut> */}
-            </CommandItem>
-          ))}
+        <CommandGroup heading={"Favorites"}>
+          {favouriteCryptos.map((s) => {
+            const ws = getSymbolData(s.symbol);
+            const price = ws?.price;
+            const pct = ws?.priceChangePercent;
+            const pctNum = pct ? parseFloat(pct) : 0;
+            return (
+              <CommandItem
+                key={s.symbol}
+                value={`${s.symbol} ${s.name}`}
+                onSelect={() => handleSelectSymbol(s.symbol)}
+                className="items-stretch"
+              >
+                <div className="flex flex-1 items-center gap-2 truncate">
+                  <Star stroke="gold" fill="gold" />
+                  <div className="flex flex-col leading-tight">
+                    <span className="font-mono text-sm font-semibold">
+                      {s.base}
+                      {/* <span className="text-primary ml-1 text-xs font-light">
+                        {s.symbol}
+                      </span> */}
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">
+                      {s.name}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="font-mono text-xs">
+                    {formatPrice(price)}
+                  </span>
+                  <span
+                    className={cn(
+                      "font-mono text-[10px] font-medium",
+                      pctNum > 0 && "text-green-500",
+                      pctNum < 0 && "text-red-500",
+                      pctNum === 0 && "text-muted-foreground",
+                    )}
+                  >
+                    {pct ? `${pctNum.toFixed(2)}%` : "--"}
+                  </span>
+                </div>
+              </CommandItem>
+            );
+          })}
         </CommandGroup>
         <CommandSeparator />
-        <CommandGroup heading={`Cryptocurrencies (${filtered.length})`}>
-          {filtered.map((s) => (
+        <CommandGroup heading={`Cryptocurrencies (${cryptoList.length})`}>
+          {cryptoList.map((s) => (
             <CommandItem
               key={s.symbol}
               value={`${s.symbol} ${s.name}`}
@@ -152,6 +206,9 @@ export function SearchModal() {
                 <div className="flex flex-col leading-tight">
                   <span className="font-mono text-sm font-semibold">
                     {s.base}
+                    {/* <span className="text-primary ml-1 text-xs font-light">
+                      {s.symbol}
+                    </span> */}
                   </span>
                   <span className="text-muted-foreground text-[11px]">
                     {s.name}
