@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useDashboardStore } from "@/providers/dashboard-store-provider";
-import { Label } from "@/components/ui/label";
 
 const chartConfig = {
   candlestick: {
@@ -71,7 +70,6 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
   const [open, close] = openClose;
   const isGrowing = open < close;
   const color = isGrowing ? "green" : "red";
-  const fillColor = isGrowing ? "green" : "red";
 
   if (height === 0 || Math.abs(open - close) < 0.001) return null;
 
@@ -81,7 +79,8 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
     <g stroke={color} strokeWidth="1">
       {/* Cuerpo de la vela */}
       <rect
-        fill={fillColor}
+        // fill={color}
+        fill={"var(--background)"}
         stroke={color}
         strokeWidth={1.5}
         x={x}
@@ -89,6 +88,8 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
         // correcciones para que la vela roja se dibuje correctamente
         y={isGrowing ? y : y + height}
         height={Math.abs(height)}
+        rx={2}
+        ry={2}
       />
       {/* Línea inferior (sombra) */}
       {isGrowing ? (
@@ -98,7 +99,7 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
           x2={x + width / 2}
           y2={y + height + (open - low) * ratio}
           stroke={color}
-          strokeWidth={1}
+          strokeWidth={1.5}
         />
       ) : (
         <line
@@ -107,7 +108,7 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
           x2={x + width / 2}
           y2={y + (close - low) * ratio}
           stroke={color}
-          strokeWidth={1}
+          strokeWidth={1.5}
         />
       )}
       {/* Línea superior (sombra) */}
@@ -118,7 +119,7 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
           x2={x + width / 2}
           y2={y + (close - high) * ratio}
           stroke={color}
-          strokeWidth={1}
+          strokeWidth={1.5}
         />
       ) : (
         <line
@@ -127,7 +128,7 @@ const Candlestick: React.FC<CandlestickProps> = (props) => {
           x2={x + width / 2}
           y2={y + height + (open - high) * ratio}
           stroke={color}
-          strokeWidth={1}
+          strokeWidth={1.5}
         />
       )}
     </g>
@@ -226,7 +227,11 @@ const TIME_RANGES = [
   },
 ];
 
-export default function PrimaryChartCard() {
+export default function PrimaryChartCard({
+  className,
+}: {
+  className?: string;
+}) {
   const {
     interval,
     setInterval,
@@ -240,7 +245,7 @@ export default function PrimaryChartCard() {
   const [activeSymbol] = useQueryState("symbol");
 
   // Hook para obtener datos de velas en tiempo real con intervalo configurable
-  const { candles, loading, error, refetch } = useBinanceKlines(interval);
+  const { candles } = useBinanceKlines(interval);
 
   // Preparar datos para el gráfico de velas
   const chartData = useMemo(() => {
@@ -292,7 +297,7 @@ export default function PrimaryChartCard() {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: price < 1 ? 6 : 2,
+      maximumFractionDigits: price < 1 ? 4 : 2,
       maximumSignificantDigits: 8,
       useGrouping: true,
     }).format(price);
@@ -305,14 +310,30 @@ export default function PrimaryChartCard() {
       className={cn(
         "@container/card duration-500 ease-in-out",
         viewerExpanded
-          ? "h-[calc(100vh-var(--header-height)-1.5rem)]"
-          : "h-[calc(60vh-var(--header-height)-1.5rem)]",
+          ? "h-[calc(100vh-var(--header-height)-1rem)]"
+          : "h-[calc(80vh-var(--header-height)-1rem)] sm:h-[calc(60vh-var(--header-height)-1rem)]",
+        className,
       )}
     >
-      <CardHeader className="flex w-full flex-row justify-between">
-        {/* Selector de rango de tiempo */}
-        <div className="flex flex-col gap-2">
-          <Label>Chart Range</Label>
+      <CardHeader className="flex justify-between gap-4">
+        <ToggleGroup
+          type="single"
+          size="sm"
+          value={chartType}
+          onValueChange={(value) => {
+            if (value) setChartType(value as "candlestick" | "line");
+          }}
+          variant="outline"
+        >
+          <ToggleGroupItem value="candlestick">
+            <ChartCandlestick className="h-5 w-5" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="line">
+            <ChartLine className="h-5 w-5" />
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <div className="flex w-fit justify-end gap-4">
+          {/* Selector de rango de tiempo */}
           <ToggleGroup
             type="single"
             size="sm"
@@ -340,273 +361,213 @@ export default function PrimaryChartCard() {
             </SelectContent>
           </Select>
         </div>
-        {/* Selector de intervalo */}
-        <div className="flex flex-col items-end gap-2">
-          <Label>Intervals/Candles</Label>
-          <Select value={interval} onValueChange={setInterval}>
-            <SelectTrigger className="w-fullt" size="sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIME_INTERVALS.map((intervalOption) => (
-                <SelectItem
-                  key={intervalOption.value}
-                  value={intervalOption.value}
-                >
-                  {intervalOption.displayName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {/* </CardAction> */}
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col items-center justify-center overflow-hidden">
-        {loading && candles.length === 0 ? (
-          <div className="flex items-center space-x-3">
-            <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
-            <span>Cargando gráfico...</span>
-          </div>
-        ) : error ? (
-          <div className="text-center text-red-600">
-            <p>Error: {error}</p>
-            <button
-              onClick={refetch}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 mt-2 rounded px-4 py-2 transition-colors"
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          {chartType === "line" ? (
+            <LineChart
+              data={filteredData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              Reintentar
-            </button>
-          </div>
-        ) : filteredData.length === 0 ? (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-muted-foreground">
-              {range
-                ? "No hay datos disponibles para el rango seleccionado"
-                : "Selecciona un rango de tiempo"}
-            </p>
-          </div>
-        ) : (
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            {chartType === "line" ? (
-              <LineChart
-                data={filteredData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="time"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="time"
+                // tickLine={false}
+                // axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return date.toLocaleDateString("es-ES", {
+                    month: "short",
+                    day: "numeric",
+                  });
+                }}
+              />
+              <YAxis
+                domain={[minValue, maxValue]}
+                tickFormatter={(value) => formatPrice(value)}
+                // tickLine={false}
+                // axisLine={false}
+                // width={80}
+                orientation="right"
+              />
+              <ChartTooltip
+                // cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value, props) => {
+                      const [data] = props;
+                      return new Date(data.payload.time).toLocaleDateString(
+                        "es-ES",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      );
+                    }}
+                    formatter={(value) => {
+                      // value puede ser un array o un número, pero para la línea solo será número
+                      if (typeof value === "number") {
+                        return (
+                          <div className="mx-auto">{formatPrice(value)}</div>
+                        );
+                      }
+                      return <div className="mx-auto">{value}</div>;
+                    }}
+                    indicator="dot"
+                  />
+                }
+              />
+              <Line type="linear" dataKey="close" strokeWidth={2} dot={false} />
+            </LineChart>
+          ) : (
+            <BarChart data={filteredData} margin={{ right: 30 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="time"
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  const rangesOrder =
+                    TIME_RANGES.find((opt) => opt.value === range)?.order || 1;
+                  const intervalOrder =
+                    TIME_INTERVALS.find((opt) => opt.value === interval)
+                      ?.order || 1;
+
+                  // Mayor que el orden "dia"
+                  if (intervalOrder > 8 && rangesOrder > 5) {
                     return date.toLocaleDateString("es-ES", {
                       month: "short",
                       day: "numeric",
                     });
-                  }}
-                />
-                <YAxis
-                  domain={[minValue, maxValue]}
-                  tickFormatter={(value) => formatPrice(value)}
-                  tickLine={false}
-                  axisLine={false}
-                  width={80}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value, props) => {
-                        const [data] = props;
-                        return new Date(data.payload.time).toLocaleDateString(
-                          "es-ES",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        );
-                      }}
-                      formatter={(value) => {
-                        // value puede ser un array o un número, pero para la línea solo será número
-                        if (typeof value === "number") {
-                          return (
-                            <div className="mx-auto">{formatPrice(value)}</div>
-                          );
-                        }
-                        return <div className="mx-auto">{value}</div>;
-                      }}
-                      indicator="dot"
-                    />
                   }
-                />
-                <Line
-                  type="linear"
-                  dataKey="close"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            ) : (
-              <BarChart
-                data={filteredData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  return date.toLocaleDateString("es-ES", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  });
+                }}
+              />
+              <YAxis
+                // width={80}
+                domain={[minValue, maxValue]}
+                tickFormatter={(value) => formatPrice(value)}
+                // tickLine={false}
+                // axisLine={false}
+                orientation="right"
+              />
+              <ChartTooltip
+                // cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value, props) => {
+                      const [data] = props;
+                      return new Date(data.payload.time).toLocaleDateString(
+                        "es-ES",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      );
+                    }}
+                    formatter={(value, name, props) => {
+                      const { payload } = props;
+                      if (payload && name === "openClose") {
+                        const [open, close] = value as [number, number];
+                        const isGrowing = open < close;
+                        const changePercent = ((close - open) / open) * 100;
+
+                        return [
+                          <div key="candle-info" className="space-y-1">
+                            <div className="flex justify-between">
+                              <span>Apertura:</span>
+                              <span className="font-mono">
+                                {formatPrice(open)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Cierre:</span>
+                              <span className="font-mono">
+                                {formatPrice(close)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Máximo:</span>
+                              <span className="font-mono">
+                                {formatPrice(payload.high)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Mínimo:</span>
+                              <span className="font-mono">
+                                {formatPrice(payload.low)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Cambio:</span>
+                              <span
+                                className={`font-mono ${isGrowing ? "text-green-600" : "text-red-600"}`}
+                              >
+                                {isGrowing ? "+" : ""}
+                                {changePercent.toFixed(2)}%
+                              </span>
+                            </div>
+                          </div>,
+                          // "Información de la vela",
+                        ];
+                      }
+                      return [value, name];
+                    }}
+                    indicator="dot"
+                  />
+                }
+              />
+              <Bar
+                dataKey="openClose"
+                fill="transparent"
+                shape={<Candlestick />}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="time"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    const rangesOrder =
-                      TIME_RANGES.find((opt) => opt.value === range)?.order ||
-                      1;
-                    const intervalOrder =
-                      TIME_INTERVALS.find((opt) => opt.value === interval)
-                        ?.order || 1;
-
-                    // Mayor que el orden "dia"
-                    if (intervalOrder > 8 && rangesOrder > 5) {
-                      return date.toLocaleDateString("es-ES", {
-                        month: "short",
-                        day: "numeric",
-                      });
-                    }
-                    return date.toLocaleDateString("es-ES", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    });
-                  }}
-                />
-                <YAxis
-                  domain={[minValue, maxValue]}
-                  tickFormatter={(value) => formatPrice(value)}
-                  tickLine={false}
-                  axisLine={false}
-                  width={80}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value, props) => {
-                        const [data] = props;
-                        return new Date(data.payload.time).toLocaleDateString(
-                          "es-ES",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        );
-                      }}
-                      formatter={(value, name, props) => {
-                        const { payload } = props;
-                        if (payload && name === "openClose") {
-                          const [open, close] = value as [number, number];
-                          const isGrowing = open < close;
-                          const changePercent = ((close - open) / open) * 100;
-
-                          return [
-                            <div key="candle-info" className="space-y-1">
-                              <div className="flex justify-between">
-                                <span>Apertura:</span>
-                                <span className="font-mono">
-                                  {formatPrice(open)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Cierre:</span>
-                                <span className="font-mono">
-                                  {formatPrice(close)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Máximo:</span>
-                                <span className="font-mono">
-                                  {formatPrice(payload.high)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Mínimo:</span>
-                                <span className="font-mono">
-                                  {formatPrice(payload.low)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Cambio:</span>
-                                <span
-                                  className={`font-mono ${isGrowing ? "text-green-600" : "text-red-600"}`}
-                                >
-                                  {isGrowing ? "+" : ""}
-                                  {changePercent.toFixed(2)}%
-                                </span>
-                              </div>
-                            </div>,
-                            // "Información de la vela",
-                          ];
-                        }
-                        return [value, name];
-                      }}
-                      indicator="dot"
-                    />
-                  }
-                />
-                <Bar
-                  dataKey="openClose"
-                  fill="transparent"
-                  shape={<Candlestick />}
-                >
-                  {filteredData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} />
-                  ))}
-                </Bar>
-              </BarChart>
-            )}
-          </ChartContainer>
-        )}
+                {filteredData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} />
+                ))}
+              </Bar>
+            </BarChart>
+          )}
+        </ChartContainer>
       </CardContent>
       <CardFooter className="justify-between">
-        <div className="flex flex-col gap-2">
-          <Label>Chart Type</Label>
-          <ToggleGroup
-            type="single"
-            size="sm"
-            value={chartType}
-            onValueChange={(value) => {
-              if (value) setChartType(value as "candlestick" | "line");
-            }}
-            variant="outline"
-          >
-            <ToggleGroupItem value="candlestick">
-              <ChartCandlestick className="h-5 w-5" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="line">
-              <ChartLine className="h-5 w-5" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <Label>{viewerExpanded ? "Collapse" : "Expand"}</Label>
-          <Button
-            onClick={() => setViewerExpanded(!viewerExpanded)}
-            size="icon"
-            className="size-8"
-            variant="outline"
-          >
-            <FullscreenIcon />
-          </Button>
-        </div>
+        {/* Selector de intervalo */}
+        <Select value={interval} onValueChange={setInterval}>
+          <SelectTrigger className="w-fullt" size="sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TIME_INTERVALS.map((intervalOption) => (
+              <SelectItem
+                key={intervalOption.value}
+                value={intervalOption.value}
+              >
+                {intervalOption.displayName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          onClick={() => setViewerExpanded(!viewerExpanded)}
+          size="icon"
+          className="size-8"
+          variant="outline"
+        >
+          <FullscreenIcon />
+        </Button>
       </CardFooter>
     </Card>
   );

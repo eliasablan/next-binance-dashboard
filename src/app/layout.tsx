@@ -44,24 +44,24 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <NuqsAdapter>
-            <SidebarProvider
-              className="relative"
-              defaultOpen={defaultOpen}
-              style={
-                {
-                  "--sidebar-width": "50px",
-                  "--header-height": "50px",
-                } as React.CSSProperties
-              }
-            >
-              <DashboardStoreProvider>
+            <DashboardStoreProvider>
+              <SidebarProvider
+                className="relative"
+                defaultOpen={defaultOpen}
+                style={
+                  {
+                    "--sidebar-width": "50px",
+                    "--header-height": "55px",
+                  } as React.CSSProperties
+                }
+              >
                 <AppSidebar />
                 <SidebarInset>
                   <SiteHeader />
                   {children}
                 </SidebarInset>
-              </DashboardStoreProvider>
-            </SidebarProvider>
+              </SidebarProvider>
+            </DashboardStoreProvider>
           </NuqsAdapter>
         </ThemeProvider>
       </body>

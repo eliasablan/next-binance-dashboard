@@ -4,25 +4,9 @@ import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Sidebar } from "lucide-react";
 import { Button } from "./ui/button";
-import { CryptoNameService } from "@/services/crypto-name";
-import { useBinanceKlines } from "@/hooks/use-binance-klines";
 import { SearchForm } from "./search-form";
 
-// Formatear precio
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    // maximumFractionDigits: price < 1 ? 6 : 2,
-    maximumSignificantDigits: 6,
-    useGrouping: true,
-  }).format(price);
-};
-
 export function SiteHeader() {
-  // Hook para obtener datos de velas en tiempo real con intervalo configurable
-  const { symbol, currentPrice } = useBinanceKlines();
   const { toggleSidebar, isMobile } = useSidebar();
 
   return (
@@ -49,18 +33,6 @@ export function SiteHeader() {
             />
           </>
         )}
-        <div className="flex items-end gap-2">
-          {symbol && (
-            <>
-              <span className="font-mono text-2xl font-bold">
-                {CryptoNameService.getCryptoName(`${symbol}USDT`)}
-              </span>
-              <span className="text-muted-foreground font-mono text-lg">
-                {formatPrice(parseFloat(currentPrice))}
-              </span>
-            </>
-          )}
-        </div>
       </div>
       <SearchForm />
     </header>

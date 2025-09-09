@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandSeparator,
   CommandShortcut,
+  Command,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -112,7 +113,6 @@ export function SearchForm() {
     () => filtered.slice(0, MAX_STREAM_SYMBOLS).map((s) => s.symbol),
     [filtered],
   );
-  console.log({ subscribedSymbols, length: subscribedSymbols.length });
   const { getSymbolData } = useBinanceWebSocket(subscribedSymbols);
 
   // Keyboard shortcut '/'
@@ -193,7 +193,7 @@ export function SearchForm() {
               <CommandItem
                 key={s.symbol}
                 value={`${s.symbol} ${s.name}`}
-                onSelect={() => handleSelectSymbol(s.base)}
+                onSelect={() => handleSelectSymbol(s.symbol)}
                 className="items-stretch"
               >
                 <div className="flex flex-1 items-center gap-2 truncate">
@@ -235,15 +235,15 @@ export function SearchForm() {
       <div className="flex items-center">
         <Button
           size="icon"
-          variant="outline"
+          variant="ghost"
           className="size-9"
           onClick={() => setOpen(true)}
         >
           <Search className="size-5" />
         </Button>
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="top" className="h-auto p-0">
-            {content}
+          <SheetContent side="bottom" className="h-auto border-t-0" showClose={false}>
+            <Command>{content}</Command>
           </SheetContent>
         </Sheet>
       </div>

@@ -11,11 +11,11 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
+// import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { useBinanceKlines } from "@/hooks/use-binance-klines";
-import { CryptoNameService } from "@/services/crypto-name";
 import { TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { CryptoNameService } from "@/services/crypto-name";
+import { SelectedCoinCard } from "./selected-coin-card";
 
 type SymbolEntry = {
   symbol: string;
@@ -23,20 +23,9 @@ type SymbolEntry = {
   name: string;
 };
 
-function formatPrice(value: string | number | undefined) {
-  const num = typeof value === "string" ? parseFloat(value) : value;
-  if (!num || Number.isNaN(num)) return "-";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: num < 1 ? 6 : 2,
-  }).format(num);
-}
-
 export default function CoinFinder() {
   const [activeSymbol, setActiveSymbol] = useQueryState("symbol");
   const { setSymbol: setSymbolHook } = useBinanceKlines();
-  const shouldHide = !!activeSymbol;
 
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -101,22 +90,19 @@ export default function CoinFinder() {
     [filtered],
   );
 
-  const MAX_STREAM_SYMBOLS = 120;
-  const subscribedSymbols = React.useMemo(
-    () => visibleResults.slice(0, MAX_STREAM_SYMBOLS).map((s) => s.symbol),
-    [visibleResults],
-  );
-  const { getSymbolData } = useBinanceWebSocket(subscribedSymbols);
+  // WebSocket logic moved to SelectedCoinCard
 
   const handleSelect = (base: string) => {
     setActiveSymbol(base);
     setSymbolHook(base);
   };
 
-  if (shouldHide) return null;
+  if (activeSymbol) {
+    return <SelectedCoinCard symbol={activeSymbol} />;
+  }
 
   return (
-    <div className="mx-auto mt-12 w-full max-w-4xl px-4">
+    <div className="mx-auto mt-12 w-full max-w-4xl border px-4">
       <div className="mb-6 text-center">
         <h1 className="font-heading text-4xl font-bold tracking-tight">
           Elige una criptomoneda
@@ -148,15 +134,11 @@ export default function CoinFinder() {
               })`}
             >
               {visibleResults.map((s) => {
-                const ws = getSymbolData(s.symbol);
-                const price = ws?.price;
-                const pct = ws?.priceChangePercent;
-                const pctNum = pct ? parseFloat(pct) : 0;
                 return (
                   <CommandItem
                     key={s.symbol}
                     value={`${s.symbol} ${s.name}`}
-                    onSelect={() => handleSelect(s.base)}
+                    onSelect={() => handleSelect(s.symbol)}
                     className="items-stretch"
                   >
                     <div className="flex flex-1 items-center gap-3 truncate">
@@ -169,21 +151,6 @@ export default function CoinFinder() {
                           {s.name}
                         </span>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-0.5">
-                      <span className="font-mono text-xs">
-                        {formatPrice(price)}
-                      </span>
-                      <span
-                        className={cn(
-                          "font-mono text-[10px] font-medium",
-                          pctNum > 0 && "text-green-500",
-                          pctNum < 0 && "text-red-500",
-                          pctNum === 0 && "text-muted-foreground",
-                        )}
-                      >
-                        {pct ? `${pctNum.toFixed(2)}%` : "--"}
-                      </span>
                     </div>
                   </CommandItem>
                 );

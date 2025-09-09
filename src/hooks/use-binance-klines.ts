@@ -1,6 +1,6 @@
 import { useDashboardStore } from "@/providers/dashboard-store-provider";
 import { useQueryState } from "nuqs";
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 
 // Interfaz para los datos de velas
 export interface Candle {
@@ -43,23 +43,18 @@ export function useBinanceKlines(interval?: string | undefined) {
   const { price, setPrice, candles, setCandles } = useDashboardStore(
     (state) => state,
   );
-  const { loadingCandles, setLoadingCandles, errorCandles, setErrorCandles } =
-    useDashboardStore((state) => state);
 
   // Función para obtener datos históricos iniciales
   const fetchInitialData = useCallback(async () => {
     try {
-      setPrice("0");
-      setLoadingCandles(true);
-      setErrorCandles(undefined);
+      setPrice(0);
 
       if (!symbol || !interval) {
-        setLoadingCandles(false);
         return;
       }
 
       const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}`,
+        `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}`,
       );
 
       if (!response.ok) {
@@ -79,21 +74,11 @@ export function useBinanceKlines(interval?: string | undefined) {
       }));
 
       setCandles(parsed);
-      setPrice(parsed[parsed.length - 1]?.close.toFixed(2) ?? "-");
+      setPrice(parsed[parsed.length - 1]?.close ?? 0);
     } catch (err) {
-      setErrorCandles(err instanceof Error ? err.message : "Error desconocido");
       console.error("Error fetching initial klines:", err);
-    } finally {
-      setLoadingCandles(false);
     }
-  }, [
-    interval,
-    symbol,
-    setPrice,
-    setCandles,
-    setLoadingCandles,
-    setErrorCandles,
-  ]);
+  }, [interval, symbol, setPrice, setCandles]);
 
   // Efecto para obtener datos iniciales cuando cambia el símbolo
   useEffect(() => {
@@ -124,7 +109,7 @@ export function useBinanceKlines(interval?: string | undefined) {
           volume: parseFloat(k.v),
         };
 
-        setPrice(candle.close.toFixed(2));
+        setPrice(candle.close);
 
         // Usar estado actual de candles desde el store (sin setter funcional disponible)
         // Nota: Al no tener acceso directo al valor previo aquí, asumimos 'candles' es el snapshot actual.
@@ -161,7 +146,6 @@ export function useBinanceKlines(interval?: string | undefined) {
 
     ws.onerror = (error) => {
       console.error("Kline WebSocket error:", error);
-      setErrorCandles("Error en conexión WebSocket");
     };
 
     ws.onclose = (event) => {
@@ -171,23 +155,12 @@ export function useBinanceKlines(interval?: string | undefined) {
     return () => {
       ws.close();
     };
-  }, [
-    symbol,
-    interval,
-    candles,
-    setPrice,
-    setCandles,
-    setLoadingCandles,
-    setErrorCandles,
-  ]);
+  }, [symbol, interval, candles, setPrice, setCandles]);
 
   return {
     candles,
     symbol,
     setSymbol,
     currentPrice: price,
-    loading: loadingCandles,
-    error: errorCandles,
-    refetch: () => fetchInitialData(),
   };
 }

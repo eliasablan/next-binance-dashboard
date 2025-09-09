@@ -4,10 +4,12 @@ import CoinFinder from "./_components/coin-finder";
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-4 p-3">
+    <div className="m-2 flex flex-1 flex-col gap-2 md:flex-row">
       <CoinFinder />
-      <PrimaryChartCard />
-      <VolumeChartCard />
+      <div className="flex grow flex-col gap-2">
+        <PrimaryChartCard />
+        <VolumeChartCard />
+      </div>
     </div>
   );
 }
