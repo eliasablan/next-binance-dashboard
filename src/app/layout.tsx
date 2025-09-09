@@ -35,8 +35,10 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* remover hasta las barras // eslint-disable-next-line @next/next/no-sync-scripts */}
-        {/* <script src="https://unpkg.com/react-scan/dist/auto.global.js" /> */}
+        {process.env.NODE_ENV === "development" && (
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
+        )}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
