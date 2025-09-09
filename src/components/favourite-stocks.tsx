@@ -6,12 +6,12 @@ import { useLocalStorage } from "usehooks-ts";
 import {
   NavigationMenu,
   NavigationMenuContent,
-  NavigationMenuIndicator,
+  // NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  NavigationMenuViewport,
+  // NavigationMenuViewport,
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
 import { Star } from "lucide-react";
