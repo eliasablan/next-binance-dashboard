@@ -91,9 +91,12 @@ export function SelectedCoinCard() {
             onClick={toggleFavourite}
           >
             <Star
-              fill={isFavourite ? "gold" : "currentColor"}
-              stroke={isFavourite ? "gold" : "currentColor"}
-              className="hover:motion-rotate-in-[0.5turn] size-4"
+              fill={"gold"}
+              stroke={"gold"}
+              className={cn(
+                "hover:motion-rotate-in-[0.5turn] size-4",
+                !isFavourite && "fill-yellow-500/20 stroke-yellow-500/20",
+              )}
             />
           </Button>
         </CardAction>
