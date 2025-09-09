@@ -11,9 +11,11 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useBinanceKlines } from "@/hooks/use-binance-klines";
-import { TrendingUp } from "lucide-react";
+import { Star, TrendingUp } from "lucide-react";
 import { CryptoNameService } from "@/services/crypto-name";
+import { useLocalStorage } from "usehooks-ts";
+import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
+import { cn } from "@/lib/utils";
 
 type SymbolEntry = {
   symbol: string;
@@ -21,9 +23,19 @@ type SymbolEntry = {
   name: string;
 };
 
+// Helper to format price
+function formatPrice(value: string | number | undefined) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (!num || Number.isNaN(num)) return "-";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: num < 1 ? 6 : 2,
+  }).format(num);
+}
+
 export default function CoinFinder() {
-  const [activeSymbol, setActiveSymbol] = useQueryState("symbol");
-  const { setSymbol: setSymbolHook } = useBinanceKlines();
+  const [symbol, setSymbol] = useQueryState("symbol");
 
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -70,38 +82,62 @@ export default function CoinFinder() {
     };
   }, []);
 
-  const filtered = React.useMemo(() => {
-    if (!searchValue) return [] as SymbolEntry[]; // hide until typing
+  const [favouriteCryptos] = useLocalStorage<
+    { symbol: string; base: string; name: string }[]
+  >("favouriteCryptos", [], {
+    serializer: (value) => JSON.stringify(value),
+    deserializer: (value) => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const cryptoList = React.useMemo(() => {
+    // if (!searchValue) return allSymbols;
     const q = searchValue.toLowerCase();
-    return allSymbols.filter(
-      (s) =>
-        s.symbol.toLowerCase().includes(q) ||
-        s.base.toLowerCase().includes(q) ||
-        s.name.toLowerCase().includes(q),
+    return (
+      allSymbols
+        // Remove favourites from list
+        .filter((s) => favouriteCryptos.every((f) => s.base !== f.base))
+        // Remove non-matching symbols
+        .filter(
+          (s) =>
+            s.base.toLowerCase().includes(q) ||
+            s.symbol.toLowerCase().includes(q) ||
+            s.name.toLowerCase().includes(q),
+        )
     );
-  }, [allSymbols, searchValue]);
+  }, [allSymbols, searchValue, favouriteCryptos]);
+
+  const watchedSymbols = React.useMemo(
+    () => favouriteCryptos.map((c) => c.symbol),
+    [favouriteCryptos],
+  );
+
+  const { getSymbolData } = useBinanceWebSocket(watchedSymbols);
 
   // Limit displayed results
   const DISPLAY_LIMIT = 10;
   const visibleResults = React.useMemo(
-    () => filtered.slice(0, DISPLAY_LIMIT),
-    [filtered],
+    () => cryptoList.slice(0, DISPLAY_LIMIT),
+    [cryptoList],
   );
 
-  // WebSocket logic moved to SelectedCoinCard
-
   const handleSelect = (base: string) => {
-    setActiveSymbol(base);
-    setSymbolHook(base);
+    setSymbol(base);
+    setSearchValue("");
   };
 
-  if (activeSymbol) return null;
+  if (symbol) return null;
 
   return (
     <div className="mx-auto mt-12 w-full max-w-4xl px-4">
       <div className="mb-6 text-center">
         <h1 className="font-heading text-4xl font-bold tracking-tight">
-          Choose a cryptocurrency
+          Search for a cryptocurrency
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
           Start typing to search by symbol or name (BTC, ETH, Solana...)
@@ -122,10 +158,56 @@ export default function CoinFinder() {
                 ? "No results"
                 : "Start typing to see results"}
           </CommandEmpty>
+          <CommandGroup heading={"Favorites"}>
+            {favouriteCryptos.map((s) => {
+              const ws = getSymbolData(s.symbol);
+              const price = ws?.price;
+              const pct = ws?.priceChangePercent;
+              const pctNum = pct ? parseFloat(pct) : 0;
+              return (
+                <CommandItem
+                  key={s.symbol}
+                  value={`${s.symbol} ${s.name}`}
+                  onSelect={() => handleSelect(s.symbol)}
+                  className="items-stretch"
+                >
+                  <div className="flex flex-1 items-center gap-2 truncate">
+                    <Star stroke="gold" fill="gold" />
+                    <div className="flex flex-col leading-tight">
+                      <span className="font-mono text-sm font-semibold">
+                        {s.base}
+                        {/* <span className="text-primary ml-1 text-xs font-light">
+                        {s.symbol}
+                      </span> */}
+                      </span>
+                      <span className="text-muted-foreground text-[11px]">
+                        {s.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-mono text-xs">
+                      {formatPrice(price)}
+                    </span>
+                    <span
+                      className={cn(
+                        "font-mono text-[10px] font-medium",
+                        pctNum > 0 && "text-green-500",
+                        pctNum < 0 && "text-red-500",
+                        pctNum === 0 && "text-muted-foreground",
+                      )}
+                    >
+                      {pct ? `${pctNum.toFixed(2)}%` : "--"}
+                    </span>
+                  </div>
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
           {visibleResults.length > 0 && (
             <CommandGroup
-              heading={`Resultados (${Math.min(filtered.length, DISPLAY_LIMIT)}${
-                filtered.length > DISPLAY_LIMIT ? "+" : ""
+              heading={`Resultados (${Math.min(cryptoList.length, DISPLAY_LIMIT)}${
+                cryptoList.length > DISPLAY_LIMIT ? "+" : ""
               })`}
             >
               {visibleResults.map((s) => {
