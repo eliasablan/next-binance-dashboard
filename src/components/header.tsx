@@ -5,6 +5,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Sidebar } from "lucide-react";
 import { Button } from "./ui/button";
 import { SearchForm } from "./search-form";
+import { FavouriteStocks } from "./favourite-stocks";
 
 export function SiteHeader() {
   const { toggleSidebar, isMobile } = useSidebar();
@@ -34,7 +35,10 @@ export function SiteHeader() {
           </>
         )}
       </div>
-      <SearchForm />
+      <div className="flex items-center gap-2">
+        <FavouriteStocks />
+        <SearchForm />
+      </div>
     </header>
   );
 }
