@@ -11,11 +11,9 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-// import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { useBinanceKlines } from "@/hooks/use-binance-klines";
 import { TrendingUp } from "lucide-react";
 import { CryptoNameService } from "@/services/crypto-name";
-import { SelectedCoinCard } from "./selected-coin-card";
 
 type SymbolEntry = {
   symbol: string;
@@ -97,24 +95,21 @@ export default function CoinFinder() {
     setSymbolHook(base);
   };
 
-  if (activeSymbol) {
-    return <SelectedCoinCard symbol={activeSymbol} />;
-  }
+  if (activeSymbol) return null;
 
   return (
-    <div className="mx-auto mt-12 w-full max-w-4xl border px-4">
+    <div className="mx-auto mt-12 w-full max-w-4xl px-4">
       <div className="mb-6 text-center">
         <h1 className="font-heading text-4xl font-bold tracking-tight">
-          Elige una criptomoneda
+          Choose a cryptocurrency
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          Empieza a escribir para buscar por símbolo o nombre (BTC, ETH,
-          Solana...)
+          Start typing to search by symbol or name (BTC, ETH, Solana...)
         </p>
       </div>
       <Command className="bg-background/60 supports-[backdrop-filter]:bg-background/70 h-auto border shadow-sm backdrop-blur">
         <CommandInput
-          placeholder="Buscar BTC, ETH, SOL..."
+          placeholder="Search BTC, ETH, SOL..."
           value={searchValue}
           onValueChange={setSearchValue}
           className="text-base"
@@ -122,10 +117,10 @@ export default function CoinFinder() {
         <CommandList className="max-h-[420px] pb-2">
           <CommandEmpty>
             {loading
-              ? "Cargando símbolos..."
+              ? "Loading symbols..."
               : searchValue
-                ? "Sin resultados"
-                : "Empieza a escribir para ver resultados"}
+                ? "No results"
+                : "Start typing to see results"}
           </CommandEmpty>
           {visibleResults.length > 0 && (
             <CommandGroup

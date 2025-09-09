@@ -8,7 +8,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-  CommandSeparator,
+  // CommandSeparator,
   CommandShortcut,
   Command,
 } from "@/components/ui/command";
@@ -18,8 +18,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { useBinanceKlines } from "@/hooks/use-binance-klines";
 import { CryptoNameService } from "@/services/crypto-name";
-import { Home, Settings, Search, TrendingUp } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  // Home,
+  //  Settings,
+  Search,
+  TrendingUp,
+} from "lucide-react";
+// import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +46,7 @@ function formatPrice(value: string | number | undefined) {
 }
 
 export function SearchForm() {
-  const router = useRouter();
+  // const router = useRouter();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
@@ -135,39 +140,39 @@ export function SearchForm() {
     setSearchValue("");
   };
 
-  const navItems = [
-    {
-      label: "Home",
-      value: "home",
-      icon: Home,
-      action: () => {
-        router.push("/");
-        setOpen(false);
-      },
-    },
-    {
-      label: "Settings",
-      value: "settings",
-      icon: Settings,
-      action: () => {
-        router.push("/settings");
-        setOpen(false);
-      },
-    },
-  ];
+  // const navItems = [
+  //   {
+  //     label: "Home",
+  //     value: "home",
+  //     icon: Home,
+  //     action: () => {
+  //       router.push("/");
+  //       setOpen(false);
+  //     },
+  //   },
+  //   {
+  //     label: "Settings",
+  //     value: "settings",
+  //     icon: Settings,
+  //     action: () => {
+  //       router.push("/settings");
+  //       setOpen(false);
+  //     },
+  //   },
+  // ];
 
   const content = (
     <>
       <CommandInput
-        placeholder="Buscar símbolo, nombre, sección..."
+        placeholder="Search symbol, name, section..."
         value={searchValue}
         onValueChange={setSearchValue}
       />
       <CommandList className="max-h-[60vh]">
         <CommandEmpty>
-          {loadingSymbols ? "Cargando..." : "Sin resultados"}
+          {loadingSymbols ? "Loading..." : "No results"}
         </CommandEmpty>
-        <CommandGroup heading="Navegación">
+        {/* <CommandGroup heading="Navigation">
           {navItems.map((item) => (
             <CommandItem
               key={item.value}
@@ -182,8 +187,8 @@ export function SearchForm() {
             </CommandItem>
           ))}
         </CommandGroup>
-        <CommandSeparator />
-        <CommandGroup heading={`Criptomonedas (${filtered.length})`}>
+        <CommandSeparator /> */}
+        <CommandGroup heading={`Cryptocurrencies (${filtered.length})`}>
           {filtered.map((s) => {
             const ws = getSymbolData(s.symbol);
             const price = ws?.price;
@@ -242,7 +247,11 @@ export function SearchForm() {
           <Search className="size-5" />
         </Button>
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="bottom" className="h-auto border-t-0" showClose={false}>
+          <SheetContent
+            side="bottom"
+            className="h-auto border-t-0"
+            showClose={false}
+          >
             <Command>{content}</Command>
           </SheetContent>
         </Sheet>

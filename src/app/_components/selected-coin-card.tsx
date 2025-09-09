@@ -24,13 +24,9 @@ function formatPrice(value: string | number | undefined) {
   }).format(num);
 }
 
-export interface SelectedCoinCardProps {
-  symbol: string;
-}
-
-export function SelectedCoinCard({ symbol }: SelectedCoinCardProps) {
+export function SelectedCoinCard() {
   // Solo nos interesa el precio de este símbolo
-  const { currentPrice, symbol: selectedSymbol } = useBinanceKlines();
+  const { currentPrice, symbol } = useBinanceKlines();
 
   const [favouriteCryptos, setFavouriteCryptos] = useLocalStorage<
     { symbol: string; name: string }[]
@@ -46,28 +42,29 @@ export function SelectedCoinCard({ symbol }: SelectedCoinCardProps) {
   });
 
   const isFavourite = favouriteCryptos.some(
-    (crypto) => crypto.symbol === selectedSymbol,
+    (crypto) => crypto.symbol === symbol,
   );
 
   function toggleFavourite() {
-    if (!selectedSymbol || !CryptoNameService.getCryptoName(selectedSymbol))
-      return;
+    if (!symbol || !CryptoNameService.getCryptoName(symbol)) return;
 
     const stockToToggle = {
-      symbol: selectedSymbol,
-      name: CryptoNameService.getCryptoName(selectedSymbol),
+      symbol: symbol,
+      name: CryptoNameService.getCryptoName(symbol),
     };
 
     if (isFavourite) {
       // Remover de favoritos
       setFavouriteCryptos((prev) =>
-        prev.filter((crypto) => crypto.symbol !== selectedSymbol),
+        prev.filter((crypto) => crypto.symbol !== symbol),
       );
     } else {
       // Agregar a favoritos
       setFavouriteCryptos((prev) => [...prev, stockToToggle]);
     }
   }
+
+  if (!symbol) return null;
 
   return (
     <Card className="h-fit w-full flex-none md:w-[350px]">
