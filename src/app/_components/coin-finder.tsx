@@ -9,7 +9,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-  CommandSeparator,
 } from "@/components/ui/command";
 import { Star, TrendingUp } from "lucide-react";
 import { CryptoNameService } from "@/services/crypto-name";
@@ -48,15 +47,12 @@ export default function CoinFinder() {
   });
 
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [searchValue, setSearchValue] = React.useState("");
 
   React.useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        setLoading(true);
         const res = await fetch("https://api.binance.com/api/v3/exchangeInfo");
         if (!res.ok) throw new Error("Error cargando símbolos");
         const data = await res.json();
@@ -81,10 +77,7 @@ export default function CoinFinder() {
           }));
         if (!cancelled) setAllSymbols(entries);
       } catch (e) {
-        if (!cancelled)
-          setError(e instanceof Error ? e.message : "Error desconocido");
-      } finally {
-        if (!cancelled) setLoading(false);
+        console.error(e);
       }
     };
     load();

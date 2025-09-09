@@ -16,7 +16,6 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { useQueryState } from "nuqs";
 import { useLocalStorage } from "usehooks-ts";
 
 const BASE_COINS = [
@@ -39,20 +38,6 @@ const BASE_COINS = [
 ];
 
 export default function SettingsClient() {
-  // Obtener lista de símbolos USDT populares
-  // const { symbols, loading } = useBinanceSidefinder();
-  // Extraer los símbolos base únicos
-  // const baseSymbols = React.useMemo(() => {
-  //   return Array.from(
-  //     new Set(symbols.map((s) => CryptoNameService.getBaseSymbol(s))),
-  //   );
-  // }, [symbols]);
-
-  // Hook para sincronizar la moneda base con el URL
-  // const [baseCoin, setBaseCoin] = useQueryState("base", {
-  //   defaultValue: "USDT",
-  // });
-
   const [baseCoin, setBaseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
     serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {

@@ -15,6 +15,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navigation = [
@@ -38,9 +39,8 @@ const userData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const { toggleSidebar } = useSidebar();
 
-  // Use collapsible="icon" so the desktop sidebar uses the fixed implementation (with gap + fixed container)
-  // This prevents it from scrolling with the page content.
   return (
     <Sidebar collapsible="icon" className="border-r" {...props}>
       <SidebarHeader>
@@ -67,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navigation.map((item) => {
                 const isActive = pathname === item.url;
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem onClick={toggleSidebar} key={item.title}>
                     <SidebarMenuButton
                       tooltip={item.title}
                       asChild
