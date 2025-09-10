@@ -45,7 +45,7 @@ export default function BaseCoinSelect({
       try {
         return JSON.parse(value);
       } catch {
-        return [];
+        return "";
       }
     },
   });

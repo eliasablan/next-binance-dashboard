@@ -43,6 +43,17 @@ export default function CoinFinder() {
       try {
         return JSON.parse(value);
       } catch {
+        return "";
+      }
+    },
+  });
+  const [favouriteCryptos] = useLocalStorage<
+    { symbol: string; base: string; name: string }[]
+  >("favouriteCryptos", [], {
+    deserializer: (value) => {
+      try {
+        return JSON.parse(value);
+      } catch {
         return [];
       }
     },
@@ -91,18 +102,6 @@ export default function CoinFinder() {
       cancelled = true;
     };
   }, [baseCoin]);
-
-  const [favouriteCryptos] = useLocalStorage<
-    { symbol: string; base: string; name: string }[]
-  >("favouriteCryptos", [], {
-    deserializer: (value) => {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return [];
-      }
-    },
-  });
 
   const cryptoList = React.useMemo(() => {
     // if (!searchValue) return symbols;

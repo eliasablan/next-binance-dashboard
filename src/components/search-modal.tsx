@@ -50,7 +50,7 @@ export function SearchModal() {
       try {
         return JSON.parse(value);
       } catch {
-        return [];
+        return "";
       }
     },
   });
