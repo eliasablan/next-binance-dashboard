@@ -37,6 +37,10 @@ export function SiteHeader() {
       </div>
       <div className="flex items-center gap-2">
         {/* <FavouriteStocks /> */}
+        <Separator
+          orientation="vertical"
+          className="ml-2 data-[orientation=vertical]:h-4"
+        />
         <SearchModal />
       </div>
     </header>
