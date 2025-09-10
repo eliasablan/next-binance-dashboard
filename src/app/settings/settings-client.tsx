@@ -9,46 +9,9 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import { useLocalStorage } from "usehooks-ts";
-
-const BASE_COINS = [
-  {
-    name: "US Dollar",
-    symbol: "USDT",
-  },
-  {
-    name: "Euro",
-    symbol: "EUR",
-  },
-  {
-    name: "Bitcoin",
-    symbol: "BTC",
-  },
-  {
-    name: "Ethereum",
-    symbol: "ETH",
-  },
-];
+import BaseCoinSelect from "@/components/base-coin-select";
 
 export default function SettingsClient() {
-  const [baseCoin, setBaseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
-    serializer: (value) => JSON.stringify(value),
-    deserializer: (value) => {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return [];
-      }
-    },
-  });
-
   return (
     <div className="grid gap-6">
       {/* Base currency selector */}
@@ -67,19 +30,7 @@ export default function SettingsClient() {
                 All prices will be shown in this currency.
               </p>
             </div>
-            <Select value={baseCoin} onValueChange={setBaseCoin}>
-              {/* <SelectValue /> */}
-              <SelectTrigger className="min-w-[120px]">
-                <SelectValue placeholder="Select base" />
-              </SelectTrigger>
-              <SelectContent>
-                {BASE_COINS.map((b) => (
-                  <SelectItem key={b.symbol} value={b.symbol}>
-                    {b.symbol} – {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <BaseCoinSelect version="full" />
             <div className="ring-border pointer-events-none absolute inset-0 -z-10 rounded-lg opacity-0 ring-1 transition-all group-hover:opacity-100" />
           </div>
         </CardContent>

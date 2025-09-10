@@ -269,7 +269,7 @@ export function SearchModal() {
       <Button
         onClick={() => setOpen(true)}
         variant="outline"
-        className="relative flex w-56 items-center gap-2 rounded-full pr-2 pl-3 text-sm"
+        className="bg-background! hover:text-foreground hover:bg-muted! relative flex w-56 items-center gap-2 rounded-full pr-2 pl-3 text-sm"
       >
         <Search className="size-4 shrink-0 opacity-60" />
         <span className="text-muted-foreground font-normal">Search</span>

@@ -9,12 +9,15 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandSeparator,
 } from "@/components/ui/command";
 import { Star, TrendingUp } from "lucide-react";
 import { CryptoNameService } from "@/services/crypto-name";
 import { useLocalStorage } from "usehooks-ts";
 import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { cn } from "@/lib/utils";
+import BaseCoinSelect from "@/components/base-coin-select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SymbolEntry = {
   symbol: string;
@@ -48,11 +51,13 @@ export default function CoinFinder() {
 
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
   const [searchValue, setSearchValue] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch("https://api.binance.com/api/v3/exchangeInfo");
         if (!res.ok) throw new Error("Error cargando símbolos");
         const data = await res.json();
@@ -78,19 +83,19 @@ export default function CoinFinder() {
         if (!cancelled) setAllSymbols(entries);
       } catch (e) {
         console.error(e);
+      } finally {
+        setIsLoading(false);
       }
     };
     load();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [baseCoin]);
 
   const [favouriteCryptos] = useLocalStorage<
     { symbol: string; base: string; name: string }[]
   >("favouriteCryptos", [], {
-    serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {
       try {
         return JSON.parse(value);
@@ -156,7 +161,6 @@ export default function CoinFinder() {
           className="text-base"
         />
         <CommandList className="max-h-[420px] pb-2">
-          {searchValue && <CommandEmpty>No results</CommandEmpty>}
           <CommandGroup heading="Favorites">
             {favouriteCryptos.map((s) => {
               const ws = getSymbolData(s.symbol);
@@ -203,12 +207,47 @@ export default function CoinFinder() {
               );
             })}
           </CommandGroup>
-          {visibleResults.length > 0 && (
+          <CommandSeparator />
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center p-1">
+              <div className="flex w-full items-start px-2 py-1.5">
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="w-full">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex w-full items-center gap-3 px-2 py-1.5"
+                  >
+                    <TrendingUp className="text-accent size-4 animate-pulse" />
+
+                    <div className="flex flex-col justify-between gap-1.5">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-3.5 w-16" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {searchValue && !isLoading && <CommandEmpty>No results</CommandEmpty>}
+
+          {!isLoading && visibleResults.length > 0 && (
             <CommandGroup
-              heading={`Resultados (${Math.min(cryptoList.length, DISPLAY_LIMIT)}${
-                cryptoList.length > DISPLAY_LIMIT ? "+" : ""
-              })`}
+              heading={
+                <div className="flex w-full items-end justify-between">
+                  <p>Resultados</p>
+                  <BaseCoinSelect />
+                </div>
+              }
+              // heading={`Resultados (${Math.min(cryptoList.length, DISPLAY_LIMIT)}${
+              //   cryptoList.length > DISPLAY_LIMIT ? "+" : ""
+              // })`}
+              // className="relative border"
             >
+              {/* <div className="flex w-full p-2 pt-1">
+                <BaseCoinSelect />
+              </div> */}
               {visibleResults.map((s) => {
                 return (
                   <CommandItem
