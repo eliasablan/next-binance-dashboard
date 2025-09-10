@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/header";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { DashboardStoreProvider } from "@/providers/dashboard-store-provider";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,6 +66,18 @@ export default async function RootLayout({
                 <SidebarInset>
                   <SiteHeader />
                   {children}
+                  <footer className="flex justify-end p-4">
+                    <span className="text-muted-foreground text-sm">
+                      By{" "}
+                      <Link
+                        className="border-muted-foreground border-b border-dashed"
+                        href="https://eliasablan.com"
+                        target="_blank"
+                      >
+                        Elias
+                      </Link>
+                    </span>
+                  </footer>
                 </SidebarInset>
               </SidebarProvider>
             </DashboardStoreProvider>

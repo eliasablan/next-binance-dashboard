@@ -10,7 +10,7 @@ import SettingsClient from "./settings-client";
 
 export default function SettingsPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 p-4 md:p-6">
+    <main className="mx-auto h-full w-full max-w-3xl space-y-6 p-4 md:p-6">
       {/* Breadcrumb / Navigation context */}
       <Breadcrumb className="animate-in fade-in slide-in-from-left-2 duration-300">
         <BreadcrumbList>
