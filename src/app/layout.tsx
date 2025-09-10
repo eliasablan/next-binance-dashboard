@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/header";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -46,7 +47,7 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
@@ -82,6 +83,7 @@ export default async function RootLayout({
               </SidebarProvider>
             </DashboardStoreProvider>
           </NuqsAdapter>
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>

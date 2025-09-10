@@ -14,6 +14,7 @@ import { useBinanceKlines } from "@/hooks/use-binance-klines";
 import { useLocalStorage } from "usehooks-ts";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function formatPrice(value: string | number | undefined) {
   const num = typeof value === "string" ? parseFloat(value) : value;
@@ -65,9 +66,11 @@ export function SelectedCoinCard() {
       setFavouriteCryptos((prev) =>
         prev.filter((crypto) => crypto.symbol !== symbol),
       );
+      toast(`${stockToToggle.symbol} eliminado de Favoritos!`);
     } else {
       // Agregar a favoritos
       setFavouriteCryptos((prev) => [...prev, stockToToggle]);
+      toast(`${stockToToggle.symbol} agregado a Favoritos!`);
     }
   }
 
@@ -82,20 +85,18 @@ export function SelectedCoinCard() {
         </CardTitle>
         <CardAction>
           <Button
-            className={cn(
-              "hover:bg-yellow-200/70!",
-              isFavourite && "border-yellow-500/50! bg-yellow-100/50!",
-            )}
+            className="group"
             size="icon"
-            variant="outline"
+            variant={isFavourite ? "link" : "outline"}
             onClick={toggleFavourite}
           >
             <Star
-              fill={"gold"}
-              stroke={"gold"}
+              stroke="currentColor"
               className={cn(
-                "hover:motion-rotate-in-[0.5turn] size-4",
-                !isFavourite && "fill-yellow-500/20 stroke-yellow-500/20",
+                "stroke-foreground duration-200",
+                isFavourite
+                  ? "size-6 animate-bounce fill-yellow-400"
+                  : "fill-none",
               )}
             />
           </Button>
