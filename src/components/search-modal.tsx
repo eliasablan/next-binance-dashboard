@@ -16,10 +16,10 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CryptoNameService } from "@/services/crypto-name";
 import { Search, Star, TrendingUp } from "lucide-react";
-import { useQueryState } from "nuqs";
 import { useLocalStorage } from "usehooks-ts";
 import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 type SymbolEntry = {
   symbol: string; // e.g. BTCUSDT
@@ -39,9 +39,9 @@ function formatPrice(value: string | number | undefined) {
 }
 
 export function SearchModal() {
+  const router = useRouter();
   const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
   const [searchValue, setSearchValue] = React.useState("");
-  const [, setSymbol] = useQueryState("symbol");
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [baseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
@@ -145,9 +145,9 @@ export function SearchModal() {
   }, []);
 
   const handleSelectSymbol = (base: string) => {
-    setSymbol(base);
     setOpen(false);
     setSearchValue("");
+    router.push(`/?symbol=${base}`);
   };
 
   const content = (
@@ -158,16 +158,16 @@ export function SearchModal() {
         onValueChange={setSearchValue}
       />
       <CommandList className="max-h-[60vh]">
-        <CommandGroup heading={"Favorites"}>
+        <CommandGroup heading="Favorites">
           {favouriteCryptos.map((s) => {
-            const ws = getSymbolData(s.symbol);
+            const ws = getSymbolData(s.symbol.toLowerCase());
             const price = ws?.price;
             const pct = ws?.priceChangePercent;
             const pctNum = pct ? parseFloat(pct) : 0;
             return (
               <CommandItem
                 key={s.symbol}
-                value={`${s.symbol} ${s.name}`}
+                value={`${s.symbol} ${s.name}`.toLowerCase()}
                 onSelect={() => handleSelectSymbol(s.symbol)}
                 className="items-stretch"
               >
