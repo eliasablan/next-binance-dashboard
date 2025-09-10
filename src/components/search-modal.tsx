@@ -81,8 +81,6 @@ export function SearchModal() {
             base: CryptoNameService.getBaseSymbol(s.symbol),
             name: CryptoNameService.getCryptoName(s.symbol),
           }));
-        console.log("Raw: ", raw);
-        console.log("Entries: ", entries);
         if (!cancelled) setAllSymbols(entries);
       } catch (e) {
         console.error(e);
