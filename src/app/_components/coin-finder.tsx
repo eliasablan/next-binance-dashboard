@@ -39,7 +39,6 @@ function formatPrice(value: string | number | undefined) {
 export default function CoinFinder() {
   const [symbol, setSymbol] = useQueryState("symbol");
   const [baseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
-    serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {
       try {
         return JSON.parse(value);
@@ -49,9 +48,9 @@ export default function CoinFinder() {
     },
   });
 
-  const [allSymbols, setAllSymbols] = React.useState<SymbolEntry[]>([]);
+  const [symbols, setSymbols] = React.useState<SymbolEntry[]>([]);
   const [searchValue, setSearchValue] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -80,7 +79,7 @@ export default function CoinFinder() {
             base: CryptoNameService.getBaseSymbol(s.symbol),
             name: CryptoNameService.getCryptoName(s.symbol),
           }));
-        if (!cancelled) setAllSymbols(entries);
+        if (!cancelled) setSymbols(entries);
       } catch (e) {
         console.error(e);
       } finally {
@@ -106,10 +105,10 @@ export default function CoinFinder() {
   });
 
   const cryptoList = React.useMemo(() => {
-    // if (!searchValue) return allSymbols;
+    // if (!searchValue) return symbols;
     const q = searchValue.toLowerCase();
     return (
-      allSymbols
+      symbols
         // Remove favourites from list
         .filter((s) => favouriteCryptos.every((f) => s.base !== f.base))
         // Remove non-matching symbols
@@ -120,7 +119,7 @@ export default function CoinFinder() {
             s.name.toLowerCase().includes(q),
         )
     );
-  }, [allSymbols, searchValue, favouriteCryptos]);
+  }, [symbols, searchValue, favouriteCryptos]);
 
   const watchedSymbols = React.useMemo(
     () => favouriteCryptos.map((c) => c.symbol),
@@ -208,7 +207,7 @@ export default function CoinFinder() {
             })}
           </CommandGroup>
           <CommandSeparator />
-          {isLoading && (
+          {isLoading && visibleResults.length < 1 && (
             <div className="flex flex-col items-center justify-center p-1">
               <div className="flex w-full items-start px-2 py-1.5">
                 <Skeleton className="h-4 w-24" />
@@ -237,17 +236,10 @@ export default function CoinFinder() {
               heading={
                 <div className="flex w-full items-end justify-between">
                   <p>Resultados</p>
-                  <BaseCoinSelect />
+                  <BaseCoinSelect className="h-6!" />
                 </div>
               }
-              // heading={`Resultados (${Math.min(cryptoList.length, DISPLAY_LIMIT)}${
-              //   cryptoList.length > DISPLAY_LIMIT ? "+" : ""
-              // })`}
-              // className="relative border"
             >
-              {/* <div className="flex w-full p-2 pt-1">
-                <BaseCoinSelect />
-              </div> */}
               {visibleResults.map((s) => {
                 return (
                   <CommandItem

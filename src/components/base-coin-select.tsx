@@ -31,9 +31,13 @@ const BASE_COINS = [
 ];
 
 export default function BaseCoinSelect({
-  version,
+  className,
+  version = "compact",
+  size = "default",
 }: {
+  className?: string;
   version?: "compact" | "full";
+  size?: "default" | "sm";
 }) {
   const [baseCoin, setBaseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
     serializer: (value) => JSON.stringify(value),
@@ -49,7 +53,9 @@ export default function BaseCoinSelect({
   return (
     <Select value={baseCoin} onValueChange={setBaseCoin}>
       <SelectTrigger
+        size={size}
         className={cn(
+          className,
           "bg-background! hover:bg-muted!",
           version === "full" && "min-w-[120px]",
         )}

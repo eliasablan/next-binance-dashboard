@@ -46,7 +46,6 @@ export function SearchModal() {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [baseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
-    serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {
       try {
         return JSON.parse(value);

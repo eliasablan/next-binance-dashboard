@@ -15,7 +15,6 @@ export function FavouriteStocks() {
   const [favouriteCryptos] = useLocalStorage<
     { symbol: string; base: string; name: string }[]
   >("favouriteCryptos", [], {
-    serializer: (value) => JSON.stringify(value),
     deserializer: (value) => {
       try {
         return JSON.parse(value);
