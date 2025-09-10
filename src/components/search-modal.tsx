@@ -20,6 +20,7 @@ import { useLocalStorage } from "usehooks-ts";
 import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { Separator } from "./ui/separator";
 
 type SymbolEntry = {
   symbol: string; // e.g. BTCUSDT
@@ -234,26 +235,32 @@ export function SearchModal() {
 
   if (isMobile) {
     return (
-      <div className="flex items-center">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="size-9"
-          onClick={() => setOpen(true)}
-        >
-          <Search className="size-5" />
-        </Button>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent
-            side="bottom"
-            className="h-auto border-t-0"
-            showClose={false}
+      <>
+        <Separator
+          orientation="vertical"
+          className="ml-2 data-[orientation=vertical]:h-4"
+        />
+        <div className="flex items-center">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-9"
+            onClick={() => setOpen(true)}
           >
-            <SheetTitle className="sr-only">Search</SheetTitle>
-            <Command>{content}</Command>
-          </SheetContent>
-        </Sheet>
-      </div>
+            <Search className="size-5" />
+          </Button>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetContent
+              side="bottom"
+              className="h-auto border-t-0"
+              showClose={false}
+            >
+              <SheetTitle className="sr-only">Search</SheetTitle>
+              <Command>{content}</Command>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </>
     );
   }
 
