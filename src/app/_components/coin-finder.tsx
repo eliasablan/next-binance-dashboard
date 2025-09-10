@@ -177,9 +177,9 @@ export default function CoinFinder() {
                     <div className="flex flex-col leading-tight">
                       <span className="font-mono text-sm font-semibold">
                         {s.base}
-                        {/* <span className="text-primary ml-1 text-xs font-light">
-                        {s.symbol}
-                      </span> */}
+                        <span className="ml-0.5 text-xs font-medium">
+                          {baseCoin.toUpperCase()}
+                        </span>
                       </span>
                       <span className="text-muted-foreground text-[11px]">
                         {s.name}
@@ -234,7 +234,7 @@ export default function CoinFinder() {
             <CommandGroup
               heading={
                 <div className="flex w-full items-end justify-between">
-                  <p>Resultados</p>
+                  <p>Cryptocurrencies ({visibleResults.length})</p>
                   <BaseCoinSelect className="h-6!" />
                 </div>
               }
@@ -250,8 +250,11 @@ export default function CoinFinder() {
                     <div className="flex flex-1 items-center gap-3 truncate">
                       <TrendingUp className="text-muted-foreground" />
                       <div className="flex flex-col leading-tight">
-                        <span className="font-mono text-base font-semibold">
-                          {s.symbol}
+                        <span className="font-mono text-sm font-semibold">
+                          {s.base.split(baseCoin)[0]}
+                          <span className="ml-0.5 text-xs font-medium">
+                            {baseCoin.toUpperCase()}
+                          </span>
                         </span>
                         <span className="text-muted-foreground text-xs">
                           {s.name}

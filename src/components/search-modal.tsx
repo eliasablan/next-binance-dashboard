@@ -10,6 +10,7 @@ import {
   CommandShortcut,
   Command,
   CommandSeparator,
+  CommandEmpty,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -21,6 +22,8 @@ import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Separator } from "./ui/separator";
+import BaseCoinSelect from "./base-coin-select";
+import { Skeleton } from "./ui/skeleton";
 
 type SymbolEntry = {
   symbol: string; // e.g. BTCUSDT
@@ -45,6 +48,7 @@ export function SearchModal() {
   const [searchValue, setSearchValue] = React.useState("");
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [baseCoin] = useLocalStorage<string>("baseCoin", "USDT", {
     deserializer: (value) => {
       try {
@@ -60,6 +64,7 @@ export function SearchModal() {
     let cancelled = false;
     const fetchAll = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch("https://api.binance.com/api/v3/exchangeInfo");
         if (!res.ok) throw new Error("Error cargando símbolos");
         const data = await res.json();
@@ -84,6 +89,8 @@ export function SearchModal() {
         if (!cancelled) setAllSymbols(entries);
       } catch (e) {
         console.error(e);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchAll();
@@ -174,9 +181,9 @@ export function SearchModal() {
                   <div className="flex flex-col leading-tight">
                     <span className="font-mono text-sm font-semibold">
                       {s.base}
-                      {/* <span className="text-primary ml-1 text-xs font-light">
-                        {s.symbol}
-                      </span> */}
+                      <span className="ml-0.5 text-xs font-medium">
+                        {baseCoin.toUpperCase()}
+                      </span>
                     </span>
                     <span className="text-muted-foreground text-[11px]">
                       {s.name}
@@ -203,31 +210,63 @@ export function SearchModal() {
           })}
         </CommandGroup>
         <CommandSeparator />
-        <CommandGroup heading={`Cryptocurrencies (${cryptoList.length})`}>
-          {cryptoList.map((s) => (
-            <CommandItem
-              key={s.symbol}
-              value={`${s.symbol} ${s.name}`}
-              onSelect={() => handleSelectSymbol(s.symbol)}
-              className="items-stretch"
-            >
-              <div className="flex flex-1 items-center gap-2 truncate">
-                <TrendingUp className="text-muted-foreground" />
-                <div className="flex flex-col leading-tight">
-                  <span className="font-mono text-sm font-semibold">
-                    {s.symbol}
-                    {/* <span className="text-primary ml-1 text-xs font-light">
-                      {s.symbol}
-                    </span> */}
-                  </span>
-                  <span className="text-muted-foreground text-[11px]">
-                    {s.name}
-                  </span>
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center p-1">
+            <div className="flex w-full items-start px-2 py-1.5">
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="w-full">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex w-full items-center gap-3 px-2 py-1.5"
+                >
+                  <TrendingUp className="text-accent size-4 animate-pulse" />
+
+                  <div className="flex flex-col justify-between gap-1.5">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-3.5 w-16" />
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {searchValue && !isLoading && <CommandEmpty>No results</CommandEmpty>}
+        {!isLoading && cryptoList.length > 0 && (
+          <CommandGroup
+            heading={
+              <div className="flex w-full items-end justify-between">
+                <p>Cryptocurrencies ({cryptoList.length})</p>
+                <BaseCoinSelect className="h-6!" />
               </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
+            }
+          >
+            {cryptoList.map((s) => (
+              <CommandItem
+                key={s.symbol}
+                value={`${s.symbol} ${s.name}`}
+                onSelect={() => handleSelectSymbol(s.symbol)}
+                className="items-stretch"
+              >
+                <div className="flex flex-1 items-center gap-2 truncate">
+                  <TrendingUp className="text-muted-foreground" />
+                  <div className="flex flex-col leading-tight">
+                    <span className="font-mono text-sm font-semibold">
+                      {s.base.split(baseCoin)[0]}
+                      <span className="ml-0.5 text-xs font-medium">
+                        {baseCoin.toUpperCase()}
+                      </span>
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">
+                      {s.name}
+                    </span>
+                  </div>
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
       </CommandList>
     </>
   );
