@@ -18,6 +18,7 @@ import { useBinanceWebSocket } from "@/hooks/use-binance-websockets";
 import { cn } from "@/lib/utils";
 import BaseCoinSelect from "@/components/base-coin-select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type SymbolEntry = {
   symbol: string;
@@ -62,6 +63,14 @@ export default function CoinFinder() {
   const [symbols, setSymbols] = React.useState<SymbolEntry[]>([]);
   const [searchValue, setSearchValue] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
+
+  React.useEffect(() => {
+    if (!isMobile) {
+      inputRef.current?.focus();
+    }
+  }, [isMobile]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -153,6 +162,7 @@ export default function CoinFinder() {
       </div>
       <Command className="bg-background/60 supports-[backdrop-filter]:bg-background/70 h-auto border shadow-sm backdrop-blur">
         <CommandInput
+          ref={inputRef}
           placeholder="Search BTC, ETH, SOL..."
           value={searchValue}
           onValueChange={setSearchValue}
@@ -173,7 +183,7 @@ export default function CoinFinder() {
                   className="items-stretch"
                 >
                   <div className="flex flex-1 items-center gap-2 truncate">
-                    <Star stroke="gold" fill="gold" />
+                    <Star stroke="black" fill="gold" />
                     <div className="flex flex-col leading-tight">
                       <span className="font-mono text-sm font-semibold">
                         {s.base}
@@ -181,23 +191,22 @@ export default function CoinFinder() {
                           {baseCoin.toUpperCase()}
                         </span>
                       </span>
-                      <span className="text-muted-foreground text-[11px]">
-                        {s.name}
-                      </span>
+                      <span className="text-[11px]">{s.name}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-0.5">
                     <span className="font-mono text-xs">
                       {formatPrice(price)}
                     </span>
-                    <span
-                      className={cn(
-                        "font-mono text-[10px] font-medium",
-                        pctNum > 0 && "text-green-500",
-                        pctNum < 0 && "text-red-500",
-                        pctNum === 0 && "text-muted-foreground",
-                      )}
-                    >
+                    <span className="flex items-center gap-1 font-mono text-[10px] font-medium">
+                      <div
+                        className={cn(
+                          "size-2 rounded-full border",
+                          pctNum > 0 && "bg-green-500",
+                          pctNum < 0 && "bg-red-500",
+                          pctNum === 0 && "bg-muted",
+                        )}
+                      />
                       {pct ? `${pctNum.toFixed(2)}%` : "--"}
                     </span>
                   </div>
@@ -248,7 +257,7 @@ export default function CoinFinder() {
                     className="items-stretch"
                   >
                     <div className="flex flex-1 items-center gap-3 truncate">
-                      <TrendingUp className="text-muted-foreground" />
+                      <TrendingUp className="text-primary" />
                       <div className="flex flex-col leading-tight">
                         <span className="font-mono text-sm font-semibold">
                           {s.base.split(baseCoin)[0]}
@@ -256,9 +265,7 @@ export default function CoinFinder() {
                             {baseCoin.toUpperCase()}
                           </span>
                         </span>
-                        <span className="text-muted-foreground text-xs">
-                          {s.name}
-                        </span>
+                        <span className="text-xs">{s.name}</span>
                       </div>
                     </div>
                   </CommandItem>
