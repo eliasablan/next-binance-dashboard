@@ -85,7 +85,7 @@ export function SelectedCoinCard() {
         </CardTitle>
         <CardAction>
           <Button
-            className="group"
+            className="group cursor-pointer"
             size="icon"
             variant={isFavourite ? "link" : "outline"}
             onClick={toggleFavourite}
@@ -93,9 +93,9 @@ export function SelectedCoinCard() {
             <Star
               stroke="currentColor"
               className={cn(
-                "stroke-foreground duration-200",
+                "stroke-foreground",
                 isFavourite
-                  ? "size-6 animate-bounce fill-yellow-400"
+                  ? "size-6 fill-yellow-500 duration-500 group-hover:fill-transparent"
                   : "fill-none",
               )}
             />
