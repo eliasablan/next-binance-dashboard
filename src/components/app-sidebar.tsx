@@ -4,7 +4,6 @@ import * as React from "react";
 import { Command, Settings, Home } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ThemeSelect } from "./theme-select";
 
 const navigation = [
   {
@@ -30,12 +30,6 @@ const navigation = [
     icon: Settings,
   },
 ];
-
-const userData = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  avatar: "/avatars/shadcn.jpg",
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
@@ -87,7 +81,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        <ThemeSelect />
       </SidebarFooter>
     </Sidebar>
   );
