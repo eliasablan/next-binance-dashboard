@@ -61,6 +61,13 @@ export function SelectedCoinCard() {
       name: CryptoNameService.getCryptoName(symbol),
     };
 
+    if (favouriteCryptos.length >= 3 && !isFavourite) {
+      toast.error(
+        "¡Solo puedes tener 3 criptomonedas favoritas en el Plan Básico!",
+      );
+      return;
+    }
+
     if (isFavourite) {
       // Remover de favoritos
       setFavouriteCryptos((prev) =>
