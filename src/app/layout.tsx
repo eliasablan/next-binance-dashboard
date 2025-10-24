@@ -73,7 +73,7 @@ export default async function RootLayout({
                       By{" "}
                       <Link
                         className="border-muted-foreground border-b border-dashed"
-                        href="https://eliasablan.com"
+                        href="https://eliasablan.dev"
                         target="_blank"
                       >
                         Elias
