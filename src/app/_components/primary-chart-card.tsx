@@ -254,7 +254,7 @@ export default function PrimaryChartCard({
 
   // Filtrar datos según el rango de tiempo seleccionado
   const filteredData = useMemo(() => {
-    const now = Date.now();
+    const latestTime = chartData.at(-1)?.time ?? 0;
     let timeAgoMs = 0; // 0 por defecto
 
     const rangeConfig = TIME_RANGES.find((opt) => opt.value === range);
@@ -262,7 +262,7 @@ export default function PrimaryChartCard({
       timeAgoMs = rangeConfig.miliseconds;
     }
 
-    return chartData.filter((item) => item.time >= now - timeAgoMs);
+    return chartData.filter((item) => item.time >= latestTime - timeAgoMs);
   }, [chartData, range]);
 
   // Calcular valores mínimos y máximos para el eje Y

@@ -11,9 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { CryptoNameService } from "@/services/crypto-name";
 import { useBinanceKlines } from "@/hooks/use-binance-klines";
-import { useLocalStorage } from "usehooks-ts";
+import { useIsClient, useLocalStorage } from "usehooks-ts";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 function formatPrice(value: string | number | undefined) {
@@ -29,11 +28,7 @@ function formatPrice(value: string | number | undefined) {
 export function SelectedCoinCard() {
   // Solo nos interesa el precio de este símbolo
   const { currentPrice, symbol } = useBinanceKlines();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isClient = useIsClient();
 
   const [favouriteCryptos, setFavouriteCryptos] = useLocalStorage<
     { symbol: string; base: string; name: string }[]
@@ -81,7 +76,7 @@ export function SelectedCoinCard() {
     }
   }
 
-  if (!symbol || !isMounted) return null;
+  if (!symbol || !isClient) return null;
 
   return (
     <Card className="h-fit w-full flex-none md:w-[350px]">

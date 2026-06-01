@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, createContext, useRef, useContext } from "react";
+import { type ReactNode, createContext, useContext, useState } from "react";
 import { useStore } from "zustand";
 
 import {
@@ -21,13 +21,10 @@ export interface DashboardStoreProviderProps {
 export const DashboardStoreProvider = ({
   children,
 }: DashboardStoreProviderProps) => {
-  const storeRef = useRef<DashboardStoreApi | null>(null);
-  if (storeRef.current === null) {
-    storeRef.current = createDashboardStore();
-  }
+  const [store] = useState(createDashboardStore);
 
   return (
-    <DashboardStoreContext.Provider value={storeRef.current}>
+    <DashboardStoreContext.Provider value={store}>
       {children}
     </DashboardStoreContext.Provider>
   );

@@ -38,10 +38,10 @@ export default function VolumeChartCard() {
 
   const filteredData = useMemo(() => {
     if (!candles.length) return [];
-    const now = Date.now();
+    const latestTime = candles.at(-1)?.time ?? 0;
     const ms = TIME_RANGES.find((r) => r.value === range)?.miliseconds;
     return candles
-      .filter((c) => !ms || c.time >= now - ms)
+      .filter((c) => !ms || c.time >= latestTime - ms)
       .map((c, idx, arr) => {
         const prev = arr[idx - 1];
         const isGrowing = c.close >= c.open;

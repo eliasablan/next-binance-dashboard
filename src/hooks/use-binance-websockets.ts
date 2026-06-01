@@ -27,6 +27,7 @@ export function useBinanceWebSocket(symbols: string[]) {
   >("disconnected");
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectRef = useRef<() => void>(() => {});
   const symbolsRef = useRef<string[]>([]);
 
   // Función para crear la conexión WebSocket
@@ -98,7 +99,7 @@ export function useBinanceWebSocket(symbols: string[]) {
         if (event.code !== 1000) {
           reconnectTimeoutRef.current = setTimeout(() => {
             console.log("Intentando reconectar...");
-            createWebSocketConnection();
+            reconnectRef.current();
           }, 3000);
         }
       };
@@ -107,6 +108,10 @@ export function useBinanceWebSocket(symbols: string[]) {
       setConnectionStatus("error");
     }
   }, [symbols]);
+
+  useEffect(() => {
+    reconnectRef.current = createWebSocketConnection;
+  }, [createWebSocketConnection]);
 
   // Efecto para crear/recrear la conexión cuando cambian los símbolos
   useEffect(() => {
