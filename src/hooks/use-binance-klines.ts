@@ -1,4 +1,5 @@
 import { useDashboardStore } from "@/providers/dashboard-store-provider";
+import { binanceRestUrl, binanceWsUrl } from "@/services/binance-endpoints";
 import { useQueryState } from "nuqs";
 import { useEffect, useCallback } from "react";
 
@@ -54,7 +55,7 @@ export function useBinanceKlines(interval?: string | undefined) {
       }
 
       const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}`,
+        binanceRestUrl(`/api/v3/klines?symbol=${symbol}&interval=${interval}`),
       );
 
       if (!response.ok) {
@@ -92,7 +93,7 @@ export function useBinanceKlines(interval?: string | undefined) {
     if (!symbol || !interval) return;
 
     const ws = new WebSocket(
-      `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`,
+      binanceWsUrl(`/ws/${symbol.toLowerCase()}@kline_${interval}`),
     );
 
     ws.onmessage = (event) => {

@@ -1,3 +1,4 @@
+import { binanceWsUrl } from "@/services/binance-endpoints";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // Interfaz para los datos de ticker en tiempo real
@@ -43,7 +44,7 @@ export function useBinanceWebSocket(symbols: string[]) {
     const streams = symbols
       .map((symbol) => `${symbol.toLowerCase()}@ticker`)
       .join("/");
-    const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams}`;
+    const wsUrl = binanceWsUrl(`/stream?streams=${streams}`);
 
     try {
       const ws = new WebSocket(wsUrl);

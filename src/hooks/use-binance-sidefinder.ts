@@ -1,5 +1,6 @@
 "use client";
 
+import { binanceRestUrl } from "@/services/binance-endpoints";
 import { useState, useEffect } from "react";
 
 // Interfaz para la información de símbolos de Binance
@@ -29,9 +30,7 @@ export function useBinanceSidefinder() {
         setError(null);
 
         // Obtener información de intercambio de Binance
-        const response = await fetch(
-          "https://api.binance.com/api/v3/exchangeInfo",
-        );
+        const response = await fetch(binanceRestUrl("/api/v3/exchangeInfo"));
 
         if (!response.ok) {
           throw new Error("Error al obtener información de símbolos");

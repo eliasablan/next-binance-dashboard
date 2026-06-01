@@ -27,6 +27,7 @@ import {
 // import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
+import { binanceRestUrl } from "@/services/binance-endpoints";
 
 type SymbolEntry = {
   symbol: string; // e.g. BTCUSDT
@@ -65,7 +66,7 @@ export function SearchForm() {
     const fetchAll = async () => {
       try {
         setLoadingSymbols(true);
-        const res = await fetch("https://api.binance.com/api/v3/exchangeInfo");
+        const res = await fetch(binanceRestUrl("/api/v3/exchangeInfo"));
         if (!res.ok) throw new Error("Error cargando símbolos");
         const data = await res.json();
         interface RawSymbol {

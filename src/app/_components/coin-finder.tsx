@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import BaseCoinSelect from "@/components/base-coin-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { binanceRestUrl } from "@/services/binance-endpoints";
 
 type SymbolEntry = {
   symbol: string;
@@ -77,7 +78,7 @@ export default function CoinFinder() {
     const load = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch("https://api.binance.com/api/v3/exchangeInfo");
+        const res = await fetch(binanceRestUrl("/api/v3/exchangeInfo"));
         if (!res.ok) throw new Error("Error cargando símbolos");
         const data = await res.json();
         interface RawSymbol {
